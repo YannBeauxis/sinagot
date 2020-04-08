@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+.vscode/*
+doc/_build/*
+notebooks/**/*.pdf
+notebooks/**/*.csv
+Untitled*.ipynb
+**/.ipynb_checkpoints/*
+**/*.egg-info
+public/*
+**dask-worker-space**
+/docs/build
+pip-wheel-metadata
+.python-version

@@ -1,0 +1,3 @@
+# Record
+
+::: sinagot.models.Record

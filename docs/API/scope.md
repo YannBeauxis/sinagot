@@ -1,0 +1,3 @@
+# Scope
+
+::: sinagot.models.Scope

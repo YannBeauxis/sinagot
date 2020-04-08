@@ -1,0 +1,1 @@
+{"log_from": "script", "scope": "record", "record_id": "REC-200320-A", "task": "HDC", "modality": "EEG", "step_label": "preprocess", "step_status": 20, "message": "Processing", "time": "2020-04-06T11:47:29.298087"}

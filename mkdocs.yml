@@ -1,0 +1,23 @@
+site_name: Sinagot Documentation
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  # - mkautodoc
+  - markdown_include.include
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+            show_source: false
+            show_if_no_docstring: true
+
+theme:
+  name: material
+
+extra_css:
+  - custom.css
