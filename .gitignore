@@ -12,3 +12,4 @@ public/*
 /docs/build
 pip-wheel-metadata
 .python-version
+dist

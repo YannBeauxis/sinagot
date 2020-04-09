@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Python library to manage data processing on a dataset."
 authors = ["Yann Beauxis <dev@yannbeauxis.net>"]
 license = "BSD-3-Clause"
+readme = "README.md"
+homepage = "https://github.com/YannBeauxis/sinagot"
+repository = "https://github.com/YannBeauxis/sinagot"
+documentation = "https://sinagot.readthedocs.io"
 
 [tool.poetry.dependencies]
 python = "^3.6.1"

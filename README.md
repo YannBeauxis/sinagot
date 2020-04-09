@@ -4,6 +4,18 @@ Sinagot is a Python library to manage data processing with *scripts* on a *datas
 Sinagot is able to batch scripts runs with a simple API. 
 Parallelization of data processing is possible with [Dask.distributed](https://distributed.dask.org/en/latest/). 
 
+## Installation
+
+Sinagot is available on PyPi :
+
+```bash
+pip install sinagot
+```
+
+## Full Documentation
+
+<https://sinagot.readthedocs.io/en/latest/>
+
 ## Concept
 
 *Dataset* are structured around some core concept : **record**, **subset**, **task**, **modality** and **script**. 
@@ -19,16 +31,7 @@ for example "REC-200331-A".
 For a record, 3 tasks are performed : "RS", "MMN" and "HDC",
 2 main modalities handle data for every tasks: "EEG" and "clinical", and a third one "behavior" exists only for HDC.
 
-## Installation
-
-On PyPi with pip ... TBD
-
-## Documentation
-
-TBD
-
 ## Demo with SoNeTAA example 
-
 
 ### Create a Dataset instance
 
