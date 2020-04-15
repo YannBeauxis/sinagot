@@ -1,6 +1,6 @@
 # Sinagot
 
-Sinagot is a Python library to manage data processing with *scripts* on a *dataset*. 
+Sinagot is a Python library to manage data processing with **scripts** on a **dataset**. 
 Sinagot is able to batch scripts runs with a simple API. 
 Parallelization of data processing is made possible by [Dask.distributed](https://distributed.dask.org/en/latest/). 
 
@@ -22,7 +22,9 @@ pip install sinagot
 A *record*, identified by its unique ID, corresponds to a recording session where experimental *tasks* are performed, 
 generating data of various *modalities*. Raw data of a **record** are processed with **scripts** to generate more useful data.
 
-> The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA. 
+> The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA :
+> https://research.pasteur.fr/en/project/sonetaa/ .
+> 
 > For documentation purpose SoNeTAA dataset structure will be used as example. 
 
 On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
@@ -118,7 +120,7 @@ For example to select only the task RS of the dataset:
 <Subset instance | task: RS, modality: None>
 ```
 
-> A dataset subscope is a *subset*.
+> A dataset subscope is a **subset**.
 
 Or the EEG modality of a record:
 
