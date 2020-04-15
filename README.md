@@ -2,7 +2,7 @@
 
 Sinagot is a Python library to manage data processing with *scripts* on a *dataset*. 
 Sinagot is able to batch scripts runs with a simple API. 
-Parallelization of data processing is possible with [Dask.distributed](https://distributed.dask.org/en/latest/). 
+Parallelization of data processing is made possible by [Dask.distributed](https://distributed.dask.org/en/latest/). 
 
 ## Installation
 
@@ -19,17 +19,17 @@ pip install sinagot
 ## Concept
 
 *Dataset* are structured around some core concept : **record**, **subset**, **task**, **modality** and **script**. 
-A *record*, identified by its unique ID, correspond to a recording session where experimental *tasks* are performed 
+A *record*, identified by its unique ID, corresponds to a recording session where experimental *tasks* are performed, 
 generating data of various *modalities*. Raw data of a **record** are processed with **scripts** to generate more useful data.
 
 > The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA. 
 > For documentation purpose SoNeTAA dataset structure will be used as example. 
 
-On SoNeTAA, a record with an ID with timestamp info in this format REC-[YYMMDD]-[A-Z], 
-for example "REC-200331-A". 
+On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
+for example `"REC-200331-A"`. 
 
-For a record, 3 tasks are performed : "RS", "MMN" and "HDC",
-2 main modalities handle data for every tasks: "EEG" and "clinical", and a third one "behavior" exists only for HDC.
+For a record, 3 tasks are performed : `"RS"`, `"MMN"` and `"HDC"`,
+2 main modalities handle data for every tasks: `"EEG"` and `"clinical"`, and a third one `"behavior"` exists only for HDC.
 
 ## Demo with SoNeTAA example 
 
@@ -41,13 +41,13 @@ Import Dataset class
 >>> from sinagot import Dataset
 ```
 
-A `Dataset` instance need 3 things : 
+A `Dataset` instance needs 3 things: 
 
 - A config file in toml format.
 - A folder containing the dataset
 - A folder containing all the scripts
 
-To instantiate a dataset use the config file path as argument :
+To instantiate a dataset use the config file path as argument:
 
 ```python
 >>> ds = Dataset('/path/to/conf')
@@ -59,7 +59,7 @@ To instantiate a dataset use the config file path as argument :
 
 ### Explore records
 
-You can list all records ids :
+You can list all records ids:
 
 ```python
 >>> for id in ds.ids():
@@ -69,7 +69,7 @@ REC-200331-A
 REC-200331-B
 ```
 
-Create a `Record` instance. For a specific record :
+Create a `Record` instance. For a specific record:
 
 ```python
 >>> rec = ds.get('REC-200331-A')
@@ -88,7 +88,7 @@ Or the first record found :
 
 ### run scripts
 
-You can run all scripts for each record of the dataset :
+You can run all scripts for each record of the dataset:
 
 ```python
 >>> ds.run()
@@ -111,7 +111,7 @@ Or for a single record :
 Each dataset or record has **subscopes** corresponding to their tasks and modalities
 simply accessible by self attributes with the scope name.
 
-For example to select only the task RS of the dataset :
+For example to select only the task RS of the dataset:
 
 ```python
 >>> ds.RS
@@ -120,14 +120,14 @@ For example to select only the task RS of the dataset :
 
 > A dataset subscope is a *subset*.
 
-Or the EEG modality of a record :
+Or the EEG modality of a record:
 
 ```python
 >>> rec.EEG
 <Record instance | id: REC-200331-A, task: None, modality: EEG>
 ```
 
-You can select a specific couple of task and modality (called **unit**) :
+You can select a specific couple of task and modality (called **unit**):
 
 ```python
 >>> ds.RS.EEG
