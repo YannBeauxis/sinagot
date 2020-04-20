@@ -70,32 +70,39 @@ class Subset(Scope):
             first_script = self.steps.first().script
         except IndexError:
             first_script = False
+
         if first_script:
-            pattern = os.path.join(*first_script.PATH_IN)
-            path_ = first_script.PATH_IN
-            if not file_match[0]:
-                path_ = path_[:-1]
-            pattern = os.path.join(*path_)
-            pattern = pattern.format(
-                id="({})".format(config["records"]["id_pattern"]),
-                task="(?:{})".format(self.task),
-            )
-            root_path = os.path.join(self.dataset._data_path, first_script.PATH_IN[0])
-            for root, dirs, files in os.walk(root_path):
-                if file_match[1]:
-                    # Search ID wihtin files
-                    item_set = files
-                else:
-                    # Search ID wihtin dirs
-                    item_set = dirs
-                for item in item_set:
-                    path = os.path.join(root, item)
-                    m = re.search(pattern, path)
-                    if m and (len(m.groups()) > 0):
-                        record_id = m.group(1)
-                        if record_id not in ids:
-                            ids.append(record_id)
-                            yield record_id
+            path_in = first_script.PATH_IN
+            if isinstance(path_in, dict):
+                path_in = path_in.values()
+            else:
+                path_in = [path_in]
+            for p_in in path_in:
+                pattern = os.path.join(*p_in)
+                path_ = p_in
+                if not file_match[0]:
+                    path_ = path_[:-1]
+                pattern = os.path.join(*path_)
+                pattern = pattern.format(
+                    id="({})".format(config["records"]["id_pattern"]),
+                    task="(?:{})".format(self.task),
+                )
+                root_path = os.path.join(self.dataset._data_path, p_in[0])
+                for root, dirs, files in os.walk(root_path):
+                    if file_match[1]:
+                        # Search ID wihtin files
+                        item_set = files
+                    else:
+                        # Search ID wihtin dirs
+                        item_set = dirs
+                    for item in item_set:
+                        path = os.path.join(root, item)
+                        m = re.search(pattern, path)
+                        if m and (len(m.groups()) > 0):
+                            record_id = m.group(1)
+                            if record_id not in ids:
+                                ids.append(record_id)
+                                yield record_id
 
     def all(self) -> Generator["Record", None, None]:
         """Generate all records instances of the subset.

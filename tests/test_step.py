@@ -11,3 +11,9 @@ def test_reload_script(dataset):
 
     step = dataset.HDC.behavior.steps.first()
     assert step.script.test_modif() == STR_AFTER
+
+def test_path():
+
+    # TODO
+
+    assert 0

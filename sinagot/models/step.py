@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import inspect
+from pathlib import Path
 import pandas as pd
 from sinagot.models import Model
 from sinagot.utils import StepStatus, LOG_STEP_LABEL, LOG_STEP_STATUS
@@ -42,7 +43,7 @@ class Step(Model):
 
     def _script_path_exists(self, position: str) -> bool:
         path = getattr(self.script.path, position)
-        if isinstance(path, tuple):
+        if isinstance(path, Path):
             return path.exists()
         if isinstance(path, dict):
             return all([
