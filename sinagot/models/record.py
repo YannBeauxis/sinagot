@@ -158,7 +158,7 @@ class Record(Scope):
 
     def _structure_status(self, columns):
 
-        df = self.status().sort_values(["step_index"])
+        df = self.status()
 
         def status_default_dict():
             def dict_to_list():

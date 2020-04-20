@@ -92,11 +92,10 @@ class ScriptTemplate:
                 for label, rp in raw_path.items()
             }
 
-    def _str_path(self, raw_path_unit: tuple):  
+    def _str_path(self, raw_path_unit: tuple):
         return (
             rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path_unit
         )
-
 
     @property
     def data_exist(self):
@@ -123,8 +122,11 @@ class ScriptTemplate:
         else:
             self.status = StepStatus.PROCESSING
             self._log_status("Processing run", StepStatus.PROCESSING)
-            self.run()
-            self._log_status("Run finished", StepStatus.DONE)
+            try:
+                self.run()
+                self._log_status("Run finished", StepStatus.DONE)
+            except Exception as ex:
+                self._log_status(ex, StepStatus.ERROR)
 
         self._logger.removeHandler(self._logger_file_handler)
 

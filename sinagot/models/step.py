@@ -46,22 +46,19 @@ class Step(Model):
         if isinstance(path, Path):
             return path.exists()
         if isinstance(path, dict):
-            return all([
-                p.exists()
-                for p in path.values()
-            ])
+            return all([p.exists() for p in path.values()])
 
     def status(self):
-        if self._script_path_exists('output'):
+        if self._script_path_exists("output"):
             return StepStatus.DONE
         try:
             logs = self.logs()
             status = logs[logs[LOG_STEP_STATUS].notna()].iloc[0][LOG_STEP_STATUS]
         except:
             status = None
-        if status == StepStatus.PROCESSING:
-            return StepStatus.PROCESSING
-        if self._script_path_exists('input'):
+        if status in [StepStatus.PROCESSING, StepStatus.ERROR]:
+            return status
+        if self._script_path_exists("input"):
             return StepStatus.DATA_READY
         else:
             return StepStatus.INIT
