@@ -40,8 +40,18 @@ class Step(Model):
             logger_namespace=self.logger.name,
         )
 
+    def _script_path_exists(self, position: str) -> bool:
+        path = getattr(self.script.path, position)
+        if isinstance(path, tuple):
+            return path.exists()
+        if isinstance(path, dict):
+            return all([
+                p.exists()
+                for p in path.values()
+            ])
+
     def status(self):
-        if self.script.path.output.exists():
+        if self._script_path_exists('output'):
             return StepStatus.DONE
         try:
             logs = self.logs()
@@ -50,7 +60,7 @@ class Step(Model):
             status = None
         if status == StepStatus.PROCESSING:
             return StepStatus.PROCESSING
-        if self.script.path.input.exists():
+        if self._script_path_exists('input'):
             return StepStatus.DATA_READY
         else:
             return StepStatus.INIT

@@ -84,10 +84,19 @@ class ScriptTemplate:
 
     def _get_path(self, raw_path):
 
-        str_path = (
-            rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path
+        if isinstance(raw_path, tuple):
+            return Path(self.data_path, *self._str_path(raw_path))
+        if isinstance(raw_path, dict):
+            return {
+                label: Path(self.data_path, *self._str_path(rp))
+                for label, rp in raw_path.items()
+            }
+
+    def _str_path(self, raw_path_unit: tuple):  
+        return (
+            rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path_unit
         )
-        return Path(self.data_path, *str_path)
+
 
     @property
     def data_exist(self):
