@@ -108,7 +108,7 @@ class ScriptTemplate:
         self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
         if not self.data_exist.input:
-            self._log_status("Data not aviable", StepStatus.DATA_NOT_AVIABLE)
+            self._log_status("Input data not available", StepStatus.DATA_NOT_AVIABLE)
         elif (not force) and self.data_exist.output:
             self._log_status("Run already processed", StepStatus.DONE)
         else:

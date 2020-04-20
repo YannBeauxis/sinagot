@@ -6,7 +6,7 @@ Parallelization of data processing is made possible by [Dask.distributed](https:
 
 ## Installation
 
-Sinagot is available on PyPi :
+Sinagot is available on PyPi:
 
 ```bash
 pip install sinagot
@@ -30,7 +30,7 @@ generating data of various *modalities*. Raw data of a **record** are processed 
 On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
 for example `"REC-200331-A"`. 
 
-For a record, 3 tasks are performed : `"RS"`, `"MMN"` and `"HDC"`,
+For a record, 3 tasks are performed: `"RS"`, `"MMN"` and `"HDC"`,
 2 main modalities handle data for every tasks: `"EEG"` and `"clinical"`, and a third one `"behavior"` exists only for HDC.
 
 ## Demo with SoNeTAA example 
@@ -79,7 +79,7 @@ Create a `Record` instance. For a specific record:
 <Record instance | id: REC-200331-A, task: None, modality: None>
 ```
 
-Or the first record found :
+Or the first record found:
 
 ```python
 >>> ds.first()
@@ -99,7 +99,7 @@ You can run all scripts for each record of the dataset:
 2020-03-31 16:03:58,869 : Step run finished
 ```
 
-Or for a single record :
+Or for a single record:
 
 ```python
 >>> rec.run()
