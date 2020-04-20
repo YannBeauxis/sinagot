@@ -1,25 +1,43 @@
-import toml
 import time
+import toml
+import pytest
 from sinagot import Dataset
 from sinagot.utils import StepStatus
 from sinagot.plugins import DaskRunManager
 
 
-def test_main_process(dataset):
-    dataset.run()
+@pytest.mark.parametrize(
+    "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
+)
+def test_run_force(dataset):
+    rec = dataset.behavior.get("REC-200320-A")
+    out_path = rec.steps.get("scores_norm").script.path.output
+    assert out_path.read_text() == "before force\n"
+    rec.run()
+    assert out_path.read_text() == "before force\n"
+    rec.run(force=True)
+    assert out_path.read_text() == "bla\n"
 
 
-def test_dask(shared_datadir):
+@pytest.mark.parametrize(
+    "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
+)
+def test_run_step_label(dataset):
+    rec = dataset.behavior.get("REC-200320-A")
+    out_path = rec.steps.get("scores_norm").script.path.output
+    assert out_path.read_text() == "before force\n"
+    rec.run("scores", force=True)
+    assert out_path.read_text() == "before force\n"
+    rec.run(force=True)
+    assert out_path.read_text() == "bla\n"
 
-    # Change config to activate dask
-    config_path = shared_datadir / "sonetaa" / "dataset.toml"
-    config = toml.load(config_path)
-    config["run"]["mode"] = "dask"
-    config_path.write_text(toml.dumps(config))
 
-    ds = Dataset(shared_datadir / "sonetaa")
-    assert isinstance(ds._run_manager, DaskRunManager)
-    rec = ds.get("REC-200320-A").HDC.EEG
+@pytest.mark.parametrize("dataset", [{"run_mode": "dask"}], indirect=True)
+def test_dask(dataset):
+
+    assert dataset.config["run"]["mode"] == "dask"
+    assert isinstance(dataset._run_manager, DaskRunManager)
+    rec = dataset.get("REC-200320-A").HDC.EEG
     step = rec.steps.get("preprocess")
     assert step.status() == StepStatus.PROCESSING
     # TODO: Handle asyncio

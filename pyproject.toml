@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "sinagot"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python library to manage data processing on a dataset."
-authors = ["Yann Beauxis <dev@yannbeauxis.net>"]
+authors = [
+    "Yann Beauxis <dev@yannbeauxis.net>",
+    "Guillaume Dumas <deep@introspection.eu>",
+    "Denis A. Engeman <denis.engemann@gmail.com>"]
+maintainers = ["Yann Beauxis <dev@yannbeauxis.net>"]
 license = "BSD-3-Clause"
 readme = "README.md"
 homepage = "https://github.com/YannBeauxis/sinagot"

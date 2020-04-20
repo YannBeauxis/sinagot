@@ -1,6 +1,10 @@
+import pytest
 from sinagot.utils import StepStatus
 
 
+@pytest.mark.parametrize(
+    "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
+)
 def test_step_status(dataset, record):
 
     rec = record.HDC.behavior

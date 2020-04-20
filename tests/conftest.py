@@ -1,9 +1,20 @@
+import toml
 import pytest
 from sinagot import Dataset
 
 
 @pytest.fixture
-def dataset(shared_datadir):
+def dataset(shared_datadir, request):
+
+    # Change config to run mode
+    run_mode = getattr(request, "param", None) and request.param.get("run_mode")
+    print("run_mode", run_mode)
+    if run_mode:
+        config_path = shared_datadir / "sonetaa" / "dataset.toml"
+        config = toml.load(config_path)
+        config["run"]["mode"] = run_mode
+        config_path.write_text(toml.dumps(config))
+
     return Dataset(shared_datadir / "sonetaa")
 
 

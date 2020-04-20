@@ -200,7 +200,7 @@ class Scope(Model):
             force: Force run and overwrites result file(s) if already exist(s).
         """
 
-        return self.dataset._run_manager.run(self)
+        return self.dataset._run_manager.run(self, step_label=step_label, force=force)
 
     def status(self) -> pd.DataFrame:
         """

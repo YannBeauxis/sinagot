@@ -43,9 +43,12 @@ class RunManager(Model):
             logger_namespace=self.logger.name,
         )
 
+        force = self.kwargs.get("force", False)
+        to_run = (self.kwargs.get("step_label") or step_label) == step_label
+
         def func(arg):
-            # if to_run:
-            script._run()
-            return arg
+            if to_run:
+                script._run(force=force)
+                return arg
 
         return func
