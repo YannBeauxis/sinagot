@@ -44,11 +44,12 @@ class RunManager(Model):
         )
 
         force = self.kwargs.get("force", False)
+        debug = self.kwargs.get("debug", False)
         to_run = (self.kwargs.get("step_label") or step_label) == step_label
 
         def func(arg):
             if to_run:
-                script._run(force=force)
+                script._run(force=force, debug=debug)
                 return arg
 
         return func

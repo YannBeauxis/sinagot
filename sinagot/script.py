@@ -109,7 +109,7 @@ class ScriptTemplate:
 
         return DataStatus(*(path_exist(path) for path in self.path))
 
-    def _run(self, force=False):
+    def _run(self, force: bool = False, debug: bool = False):
         """Required run function. Called by step model :code:`run()` method."""
 
         self._init_logger()
@@ -126,6 +126,8 @@ class ScriptTemplate:
                 self.run()
                 self._log_status("Run finished", StepStatus.DONE)
             except Exception as ex:
+                if debug:
+                    raise ex
                 self._log_status(ex, StepStatus.ERROR)
 
         self._logger.removeHandler(self._logger_file_handler)
