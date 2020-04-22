@@ -1,7 +1,7 @@
 
 [path]
-    data = '../dataset'
-    scripts = '../scripts'
+    data = './dataset'
+    scripts = './scripts'
 
 [log]
     name = "sonetaa"
