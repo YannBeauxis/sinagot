@@ -49,8 +49,8 @@ class Dataset(Subset):
         # Load config
         self._config_path = Path(config_path)
         if self._config_path.is_dir():
-            config_path = self._config_path / "dataset.toml"
-        self.config = toml.load(config_path)
+            self._config_path = self._config_path / "dataset.toml"
+        self.config = toml.load(self._config_path)
         """Config dictionnary from config file."""
 
         # Get data_path
@@ -62,7 +62,7 @@ class Dataset(Subset):
         try:
             self._scripts_path = self._resolve_path(self.config["path"]["scripts"])
         except KeyError:
-            self._scripts_path = self._config_path
+            self._scripts_path = self._config_path.parent
 
         # Init logger
         self.logger = logger_factory(self.config)
@@ -102,5 +102,5 @@ class Dataset(Subset):
 
         path = Path(raw_path)
         if re.match(r"(?:\.{1,2}\/.*|\.$)", str(raw_path)):
-            path = Path(self._config_path, raw_path).resolve()
+            path = Path(self._config_path.parent, raw_path).resolve()
         return path

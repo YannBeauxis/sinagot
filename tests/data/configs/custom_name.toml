@@ -1,0 +1,44 @@
+
+[path]
+    data = '../dataset'
+    scripts = '../scripts'
+
+[log]
+    name = "sonetaa"
+    format = "%(asctime)s : %(message)s"
+    level = 'INFO'
+
+[records]
+    id_pattern = "REC-[\\d]{6}-[A-Z]"
+    file_match = [true, true]
+
+[run]
+    mode = "main_process"
+    # mode = "dask"
+    
+[dask]
+    scheduler.mode = "local"
+    scheduler.n_workers = 1
+    scheduler.processes = true
+    scheduler.threads_per_worker = 1
+    asynchronous = false
+
+[modalities]
+    [modalities.EEG]
+        file_match = [true, false]
+        scripts = ['preprocess']
+        tasks_scripts.RS = ['alpha']
+    [modalities.behavior]
+        models.subset = 'BehaviorSubset'
+        models.record = 'BehaviorRecord'
+        scripts = ['scores', 'scores_norm']
+    [modalities.clinical]
+
+[tasks]
+    [tasks.RS]
+        modalities = ["clinical", "EEG"]
+    [tasks.MMN]
+        modalities = ["clinical", "EEG"]
+    [tasks.HDC]
+        modalities = ["clinical", "EEG", "behavior"]
+
