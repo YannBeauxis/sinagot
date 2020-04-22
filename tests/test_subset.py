@@ -5,7 +5,7 @@ from sinagot.models import Record
 
 def test_set_subset(dataset, shared_datadir):
     ds = dataset
-    assert ds._data_path == shared_datadir / "dataset"
+    assert ds._data_path == shared_datadir / "sonetaa" / "dataset"
     for task in ("RS", "MMN", "HDC"):
         task_subset = getattr(ds, task)
         assert isinstance(task_subset, ds._subscope_class)
