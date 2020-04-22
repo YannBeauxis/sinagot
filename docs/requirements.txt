@@ -105,4 +105,4 @@ webencodings==0.5.1
 wrapt==1.11.2
 zict==2.0.0
 zipp==3.1.0; python_version < "3.8"
-sinagot==0.1.2
+sinagot==0.1.3
