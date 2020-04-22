@@ -105,4 +105,4 @@ webencodings==0.5.1
 wrapt==1.11.2
 zict==2.0.0
 zipp==3.1.0; python_version < "3.8"
--e git+git@github.com:YannBeauxis/sinagot.git@787511104e457226e75acf69e4ce05e1c5f6f76b#egg=sinagot
+-e git+https://github.com/YannBeauxis/sinagot#egg=sinagot
