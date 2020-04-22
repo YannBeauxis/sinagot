@@ -14,7 +14,7 @@ pip install sinagot
 
 ## Full Documentation
 
-<https://sinagot.readthedocs.io/en/latest/>
+<https://sinagot.readthedocs.io>
 
 ## Concept
 

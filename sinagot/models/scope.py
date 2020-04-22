@@ -192,15 +192,23 @@ class Scope(Model):
             step_collection_class = StepCollection
             return step_collection_class(self)
 
-    def run(self, step_label: Optional[str] = None, force: Optional[bool] = False, debug: Optional[bool] = False):
+    def run(
+        self,
+        step_label: Optional[str] = None,
+        force: Optional[bool] = False,
+        debug: Optional[bool] = False,
+    ):
         """Run all steps of the scope.
         
         Args:
             step_label: if not `None`, run only for the step with this label.
             force: Force run and overwrites result file(s) if already exist(s).
+            debug: If False, log scripts errors and not raise them.
         """
 
-        return self.dataset._run_manager.run(self, step_label=step_label, force=force, debug=debug)
+        return self.dataset._run_manager.run(
+            self, step_label=step_label, force=force, debug=debug
+        )
 
     def status(self) -> pd.DataFrame:
         """
