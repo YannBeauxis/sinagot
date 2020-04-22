@@ -6,20 +6,14 @@ attrs==19.3.0
 backcall==0.1.0
 beautifulsoup4==4.9.0
 black==19.10b0
-bleach==3.1.4
-certifi==2020.4.5.1
-chardet==3.0.4
 click==7.1.1
 cloudpickle==1.3.0
 colorama==0.4.3; sys_platform == "win32"
 dask==2.14.0
 decorator==4.4.2
-defusedxml==0.6.0
 distributed==2.14.0
-entrypoints==0.3
 future==0.18.2
 heapdict==1.0.1
-idna==2.9
 importlib-metadata==1.6.0; python_version < "3.8"
 ipykernel==5.2.1
 ipython==7.13.0
@@ -29,12 +23,8 @@ jedi==0.17.0
 jinja2==2.11.2
 joblib==0.14.1
 json-log-formatter==0.3.0
-json5==0.9.4
-jsonschema==3.2.0
 jupyter-client==6.1.3
 jupyter-core==4.6.3
-jupyterlab==2.1.0
-jupyterlab-server==1.1.1
 lazy-object-proxy==1.4.3
 livereload==2.6.1
 lunr==0.5.6
@@ -42,36 +32,29 @@ markdown==3.2.1
 markdown-include==0.5.1
 markupsafe==1.1.1
 mccabe==0.6.1
-mistune==0.8.4
 mkdocs==1.1
 mkdocs-material==5.1.1
 mkdocs-material-extensions==1.0b2
 mkdocstrings==0.10.3
 more-itertools==8.2.0
 msgpack==1.0.0
-nbconvert==5.6.1
-nbformat==5.0.6
 nltk==3.5
-notebook==6.0.3
 numpy==1.18.3
 packaging==20.3
 pandas==1.0.3
-pandocfilters==1.4.2
 parso==0.7.0
 pathspec==0.8.0
 pexpect==4.8.0; sys_platform != "win32"
 pickleshare==0.7.5
 pluggy==0.13.1
-prometheus-client==0.7.1
 prompt-toolkit==3.0.5
 psutil==5.7.0
-ptyprocess==0.6.0; sys_platform != "win32" or os_name != "nt"
+ptyprocess==0.6.0; sys_platform != "win32"
 py==1.8.1
 pygments==2.6.1
 pylint==2.4.4
 pymdown-extensions==7.1
 pyparsing==2.4.7
-pyrsistent==0.16.0
 pytest==5.4.1
 pytest-asyncio==0.10.0
 pytest-datadir==1.3.1
@@ -80,29 +63,20 @@ python-dateutil==2.8.1
 pytkdocs==0.3.0
 pytz==2019.3
 pywin32==227; sys_platform == "win32"
-pywinpty==0.5.7; os_name == "nt"
 pyyaml==5.3.1
 pyzmq==19.0.0
 regex==2020.4.4
-requests==2.23.0
-rope==0.16.0
-send2trash==1.5.0
 six==1.14.0
 sortedcontainers==2.1.0
 soupsieve==1.9.5
 tblib==1.6.0
-terminado==0.8.3
-testpath==0.4.4
 toml==0.10.0
 toolz==0.10.0
 tornado==6.0.4
 tqdm==4.45.0
 traitlets==4.3.3
 typed-ast==1.4.1
-urllib3==1.25.9
 wcwidth==0.1.9
-webencodings==0.5.1
 wrapt==1.11.2
 zict==2.0.0
 zipp==3.1.0; python_version < "3.8"
--e git+https://github.com/YannBeauxis/sinagot#egg=sinagot
