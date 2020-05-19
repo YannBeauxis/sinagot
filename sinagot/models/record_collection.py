@@ -7,9 +7,9 @@ import pandas as pd
 from sinagot.models import Scope, Record
 
 
-class Subset(Scope):
+class RecordCollection(Scope):
     """
-    A Subset is used to manipulate a collection of [Record](record.md).
+    A RecordCollection is used to manipulate a collection of [Record](record.md).
 
     Note:
         Inherite [Scope](scope.md) methods.
@@ -17,12 +17,12 @@ class Subset(Scope):
     Example:
 
     ```python
-    # access subset of all EEG records (EEG is a task)
+    # access record_collection of all EEG records (EEG is a task)
     sub = ds.EEG  # ds is a Dataset instance
     ```
     """
 
-    _MODEL_TYPE = "subset"
+    _MODEL_TYPE = "record_collection"
     _record_class = Record
 
     def __init__(self, *args, **kwargs):
@@ -39,7 +39,7 @@ class Subset(Scope):
                 pass
 
     def ids(self) -> Generator[str, None, None]:
-        """Generator all record ids within the subset.
+        """Generator all record ids within the record_collection.
         
         Returns:
             Record ID.
@@ -105,7 +105,7 @@ class Subset(Scope):
                                 yield record_id
 
     def all(self) -> Generator["Record", None, None]:
-        """Generate all records instances of the subset.
+        """Generate all records instances of the record_collection.
         
         Returns:
             sinagot.models.Record: Record instance
@@ -145,7 +145,7 @@ class Subset(Scope):
 
     def has(self, record_id: str) -> bool:
         """
-        Check existance of a record in the subset.
+        Check existance of a record in the record_collection.
         
         Args:
             record_id: Id of the record.

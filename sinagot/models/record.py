@@ -16,7 +16,7 @@ from sinagot.utils import (
 class Record(Scope):
     """
     A Record instance is used to manipulate a single record data.
-    It's accessed from a [Subset](subset.md).
+    It's accessed from a [RecordCollection](record_collection.md).
     
     Note:
         Inherite [Scope](scope.md) methods.
@@ -43,27 +43,32 @@ class Record(Scope):
         super().__init__(dataset, *args, **kwargs)
 
     @property
-    def subset(self) -> "Subset":
+    def record_collection(self) -> "RecordCollection":
         """
-        Subset instance with same scope than the record i.e. the same task and modality value.
+        RecordCollection instance with same scope than the record i.e. the same task and modality value.
         """
 
-        subset = self.dataset
+        record_collection = self.dataset
         if self.task is not None:
-            subset = getattr(subset, self.task)
+            record_collection = getattr(record_collection, self.task)
         if self.modality is not None:
-            subset = getattr(subset, self.modality)
-        return subset
+            record_collection = getattr(record_collection, self.modality)
+        return record_collection
+
+    #  TODO: Deprecated warning
+    @property
+    def subset(self) -> "Subset":
+        return self.record_collection
 
     def exists(self) -> bool:
         """
-        Check if the record exists in the subset with the same task and modality values.
+        Check if the record exists in the record_collection with the same task and modality values.
 
         Returns:
             True if the record exists
         """
 
-        return self.subset.has(self.id)
+        return self.record_collection.has(self.id)
 
     def logs(self) -> pd.DataFrame:
         """

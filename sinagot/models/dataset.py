@@ -4,8 +4,7 @@ import re
 from pathlib import Path
 from typing import Union, Optional
 import toml
-import pandas as pd
-from sinagot.models import Subset, Record, RunManager
+from sinagot.models import RecordCollection, Record, RunManager
 from sinagot.config import ConfigurationError
 from sinagot.logger import logger_factory
 
@@ -17,11 +16,11 @@ except ImportError:
     dask_enable = False
 
 
-class Dataset(Subset):
+class Dataset(RecordCollection):
     """
     Dataset is the main class to handle data.
     It handle all configuration information and objects non specific to a particular data as the logger.
-    It's also a [Subset](subset.md) instance used to manipulate a collection off all the records.
+    It's also a [RecordCollection](record_collection.md) instance used to manipulate a collection off all the records.
 
     It required a configuration file in toml format.
 
@@ -33,7 +32,7 @@ class Dataset(Subset):
     ```
     """
 
-    _subscope_class = Subset
+    _subscope_class = RecordCollection
 
     def __init__(
         self,
@@ -82,11 +81,11 @@ class Dataset(Subset):
 
         self._run_manager = run_manager(self)
 
-        #  Init from subset
+        #  Init from RecordCollection
         super().__init__(self)
 
-        # Set subscope from config to Subset and Record class
-        Subset._set_subscopes(self)
+        # Set subscope from config to RecordCollection and Record class
+        RecordCollection._set_subscopes(self)
         Record._set_subscopes(self)
 
     def _resolve_path(self, raw_path):

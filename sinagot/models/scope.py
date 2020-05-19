@@ -6,19 +6,20 @@ from sinagot.models import Model, StepCollection
 
 
 class Scope(Model):
-    """
-    A Scope instance can :
-    
-    - Handle task and modality subscopes.
+    # """
+    # A Scope instance can :
 
-    - Handle StepCollection with `.steps` attribute.
+    # - Handle task and modality subscopes.
 
-    Note:
-        Scope is base class for [Subset](subset.md) and [Record](record.md).
-    """
+    # - Handle StepCollection with `.steps` attribute.
+
+    # Note:
+    #     Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
+    # """
 
     _REPR_ATTRIBUTES = ["task", "modality"]
     _MODEL_TYPE = None
+    _DEPRECATED_MODEL_TYPES = {"subset": "record_collection"}
     _subscope_class = None
     _tasks = []
     task = None
@@ -79,24 +80,37 @@ class Scope(Model):
         """Add subscope to self.__class__ as a property
         that call an instance of local defined subclass"""
 
-        # Search for custom subscope class in config
-        model_type = cls._MODEL_TYPE
-        _subscope_class = cls
-        if subscope == "modality":
-            try:
-                class_name = dataset.config["modalities"][value]["models"][model_type]
-                _subscope_class = dataset._get_module(
-                    class_name, value, "models", model_type
-                )
-            except KeyError:
-                pass
-
+        _subscope_class = cls._search_custom_subscope_in_config(
+            subscope, value, dataset
+        )
         setattr(
             cls,
             value,
             property(cls._property_factory(_subscope_class, subscope, value)),
         )
         return value
+
+    @classmethod
+    def _search_custom_subscope_in_config(cls, subscope, value, dataset):
+        model_type = cls._MODEL_TYPE
+        if subscope == "modality":
+            sub_config = dataset.config
+            for key in ("modalities", value, "models"):
+                sub_config = sub_config.get(key, {})
+            custom_class, model_type = cls._DEPRECATED_get_model_type_from_config(
+                sub_config, model_type
+            )
+            if custom_class:
+                return dataset._get_module(custom_class, value, "models", model_type)
+        return cls
+
+    #  TODO: Deprecated warning
+    @classmethod
+    def _DEPRECATED_get_model_type_from_config(cls, sub_config, model_type):
+        for key in sub_config.keys():
+            if cls._DEPRECATED_MODEL_TYPES.get(key) == model_type:
+                return sub_config[key], key
+        return sub_config.get(model_type), model_type
 
     @staticmethod
     def _property_factory(_subscope_class, subscope, value):

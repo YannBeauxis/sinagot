@@ -1,6 +1,6 @@
 import re
 import pytest
-from sinagot.models import Record
+from sinagot.models import Record, Subset
 
 
 def test_set_subset(dataset, shared_datadir):
@@ -23,7 +23,7 @@ def test_set_subset(dataset, shared_datadir):
 
 
 def test_custom_subset(dataset):
-    assert dataset.EEG.__class__.__name__ == "Subset"
+    assert isinstance(dataset.EEG, Subset)
     assert dataset.behavior.__class__.__name__ == "BehaviorSubset"
     assert dataset.behavior.test() == "Test !!"
 

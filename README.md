@@ -18,7 +18,7 @@ pip install sinagot
 
 ## Concept
 
-*Dataset* are structured around some core concept : **record**, **subset**, **task**, **modality** and **script**. 
+*Dataset* are structured around some core concept : **record**, **task**, **modality** and **script**. 
 A *record*, identified by its unique ID, corresponds to a recording session where experimental *tasks* are performed, 
 generating data of various *modalities*. Raw data of a **record** are processed with **scripts** to generate more useful data.
 
@@ -117,10 +117,10 @@ For example to select only the task RS of the dataset:
 
 ```python
 >>> ds.RS
-<Subset instance | task: RS, modality: None>
+<RecordCollection instance | task: RS, modality: None>
 ```
 
-> A dataset subscope is a **subset**.
+> A dataset subscope is a **RecordCollection**.
 
 Or the EEG modality of a record:
 
@@ -133,7 +133,7 @@ You can select a specific couple of task and modality (called **unit**):
 
 ```python
 >>> ds.RS.EEG
-<Subset instance | task: RS, modality: EEG>
+<RecordCollection instance | task: RS, modality: EEG>
 >>> ds.EEG.RS
-<Subset instance | task: RS, modality: EEG>
+<RecordCollection instance | task: RS, modality: EEG>
 ```

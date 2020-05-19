@@ -1,3 +1,0 @@
-# Subset
-
-::: sinagot.models.Subset

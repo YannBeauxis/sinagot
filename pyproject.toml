@@ -33,6 +33,7 @@ markdown-include = "^0.5.1"
 mkdocstrings = "^0.10.2"
 mkdocs-material = "^5.0.1"
 ipykernel = "^5.2.1"
+rope = "^0.17.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

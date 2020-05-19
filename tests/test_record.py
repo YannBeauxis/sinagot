@@ -9,15 +9,15 @@ def test_set_subscope_record(record, TASKS):
         assert isinstance(task_record, record._subscope_class)
         assert task_record.task == task
         for modality in ("EEG", "clinical"):
-            modality_subset = getattr(task_record, modality)
-            assert modality_subset.modality == modality
-            assert isinstance(modality_subset, record._subscope_class)
+            modality_record_collection = getattr(task_record, modality)
+            assert modality_record_collection.modality == modality
+            assert isinstance(modality_record_collection, record._subscope_class)
 
-    #  Test modality exist only for the right tasks
+
+def test_modality_exist_only_for_the_right_tasks(record):
     hdc_behavior = record.HDC.behavior
     assert isinstance(hdc_behavior, record._subscope_class)
     with pytest.raises(AttributeError):
-        print(record.EEG.behavior)
         assert record.EEG.behavior is None
     with pytest.raises(AttributeError):
         assert record.behavior.EEG is None

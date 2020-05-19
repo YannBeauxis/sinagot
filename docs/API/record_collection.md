@@ -1,0 +1,3 @@
+# RecordCollection
+
+::: sinagot.models.RecordCollection
