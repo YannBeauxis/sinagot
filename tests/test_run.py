@@ -17,6 +17,7 @@ def test_run_force(dataset):
     assert out_path.read_text() == "before force\n"
     rec.run(force=True)
     assert out_path.read_text() == "bla\n"
+    dataset._run_manager.close()
 
 
 @pytest.mark.parametrize(
@@ -30,6 +31,7 @@ def test_run_step_label(dataset):
     assert out_path.read_text() == "before force\n"
     rec.run(force=True)
     assert out_path.read_text() == "bla\n"
+    dataset._run_manager.close()
 
 
 @pytest.mark.parametrize("dataset", [{"run_mode": "dask"}], indirect=True)
@@ -43,3 +45,4 @@ def test_dask(dataset):
     # TODO: Handle asyncio
     rec.run()
     assert step.status() == StepStatus.DONE
+    dataset._run_manager.close()

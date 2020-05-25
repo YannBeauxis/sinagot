@@ -53,3 +53,6 @@ class RunManager(Model):
                 return arg
 
         return func
+
+    def close(self):
+        pass
