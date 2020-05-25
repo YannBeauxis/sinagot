@@ -174,7 +174,7 @@ class Scope(Model):
             for modality in modalities:
                 yield modality
 
-    def tasks(self) -> Generator["Scope", None, None]:
+    def iter_tasks(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its task.
 
@@ -187,7 +187,12 @@ class Scope(Model):
                 model = getattr(self, task)
                 yield model
 
-    def modalities(self) -> Generator["Scope", None, None]:
+    #  TODO: Deprecated warning
+    def tasks(self):
+        """DEPRECATED: Use `iter_tasks()` instead"""
+        return self.iter_tasks()
+
+    def iter_modalities(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its modalities.
 
@@ -198,6 +203,11 @@ class Scope(Model):
         for modality in self._modalities:
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
+
+    #  TODO: Deprecated warning
+    def modalities(self):
+        """DEPRECATED: Use `iter_modalities()` instead"""
+        return self.iter_modalities()
 
     def _set_step_collection(self):
         """Used in __init__(), set 'steps' attribute to an instance of step collection class"""
