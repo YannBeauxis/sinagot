@@ -13,9 +13,9 @@ def test_run_force(dataset):
     rec = dataset.behavior.get("REC-200320-A")
     out_path = rec.steps.get("scores_norm").script.path.output
     assert out_path.read_text() == "before force\n"
-    rec.steps.run()
+    rec.run()
     assert out_path.read_text() == "before force\n"
-    rec.steps.run(force=True)
+    rec.run(force=True)
     assert out_path.read_text() == "bla\n"
     dataset._run_manager.close()
 
@@ -27,9 +27,9 @@ def test_run_step_label(dataset):
     rec = dataset.behavior.get("REC-200320-A")
     out_path = rec.steps.get("scores_norm").script.path.output
     assert out_path.read_text() == "before force\n"
-    rec.steps.run("scores", force=True)
+    rec.run("scores", force=True)
     assert out_path.read_text() == "before force\n"
-    rec.steps.run(force=True)
+    rec.run(force=True)
     assert out_path.read_text() == "bla\n"
     dataset._run_manager.close()
 
@@ -43,10 +43,10 @@ def test_dask(dataset):
     step = rec.steps.get("preprocess")
     assert step.status() == StepStatus.PROCESSING
     # TODO: Handle asyncio
-    rec.steps.run()
+    rec.run()
     assert step.status() == StepStatus.DONE
     dataset._run_manager.close()
 
 
 def test_record_collection_run(dataset):
-    dataset.steps.run()
+    dataset.run()

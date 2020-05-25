@@ -93,7 +93,7 @@ Or the first record found:
 You can run all scripts for each record of the dataset:
 
 ```python
->>> ds.run()
+>>> ds.steps.run()
 2020-03-31 16:03:58,869 : Begin step run
 ...
 2020-03-31 16:03:58,869 : Step run finished
@@ -102,7 +102,7 @@ You can run all scripts for each record of the dataset:
 Or for a single record:
 
 ```python
->>> rec.run()
+>>> rec.steps.run()
 2020-03-31 16:06:57,313 : Begin step run
 ...
 2020-03-31 16:06:57,314 : Step run finished

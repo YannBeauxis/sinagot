@@ -63,8 +63,8 @@ class Step(Model):
         else:
             return StepStatus.INIT
 
-    def run(self):
-        self.model.run()
+    def run(self, force=False):
+        self.model.run(step_label=self.label, force=force)
 
     def logs(self):
         try:

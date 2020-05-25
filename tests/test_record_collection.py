@@ -28,10 +28,6 @@ def test_custom_record_collection(dataset):
     assert dataset.behavior.test() == "Test !!"
 
 
-def test_run(dataset):
-    dataset.run()
-
-
 def test_ids(dataset, IDS):
     assert set(dataset.ids()) == set(IDS)
 

@@ -20,9 +20,9 @@ class Dataset(RecordCollection):
     """
     Dataset is the main class to handle data.
     It handle all configuration information and objects non specific to a particular data as the logger.
-    It's also a [RecordCollection](record_collection.md) instance used to manipulate a collection off all the records.
+    It's also a [RecordCollection](record_collection.md) instance used to manipulate a collection of all the records.
 
-    It required a configuration file in toml format.
+    It required a configuration file in `.toml` format.
 
     Usage:
 

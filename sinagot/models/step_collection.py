@@ -1,5 +1,6 @@
 # coding=utf-8
 
+from typing import Optional
 import pandas as pd
 from sinagot.models import Model, Step
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
@@ -45,7 +46,6 @@ class StepCollection(Model):
         return self._get_module("Script", self.modality, script_name)
 
     def get(self, script):
-
         return Step(script=script, model=self.model)
 
     def all(self):
@@ -69,6 +69,25 @@ class StepCollection(Model):
 
     def count(self):
         return len(self._scripts_names)
+
+    def run(
+        self,
+        step_label: Optional[str] = None,
+        force: Optional[bool] = False,
+        debug: Optional[bool] = False,
+    ):
+        """Run all steps of the scope.
+        
+        Args:
+            step_label: if not `None`, run only for the step with this label.
+            force: Force run and overwrites result file(s) if already exist(s).
+            debug: If False, log scripts errors and not raise them.
+        """
+
+        dataset = self.dataset
+        return dataset._run_manager.run(
+            dataset, step_label=step_label, force=force, debug=debug
+        )
 
     def status(self):
         if self.model._MODEL_TYPE == "record":

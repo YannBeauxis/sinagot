@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from typing import Optional, Generator, TypeVar
+from typing import Optional, Generator
 import pandas as pd
 from sinagot.models import Model, StepCollection
 
@@ -52,7 +52,7 @@ class Scope(Model):
             self._subscope_class = self.__class__
         super().__init__(dataset)
 
-        self.steps: "StepCollection" = self._set_step_collection()
+        self.steps: "StepCollection" = StepCollection(self)
         """Collection of steps."""
 
     @classmethod
@@ -209,30 +209,11 @@ class Scope(Model):
         """DEPRECATED: Use `iter_modalities()` instead"""
         return self.iter_modalities()
 
-    def _set_step_collection(self):
-        """Used in __init__(), set 'steps' attribute to an instance of step collection class"""
+    # TODO: deprecated warning
+    def run(self, *args, **kwargs):
+        """DEPRECATED: Use `steps.run()` instead"""
 
-        if self.is_unit:
-            step_collection_class = StepCollection
-            return step_collection_class(self)
-
-    def run(
-        self,
-        step_label: Optional[str] = None,
-        force: Optional[bool] = False,
-        debug: Optional[bool] = False,
-    ):
-        """Run all steps of the scope.
-        
-        Args:
-            step_label: if not `None`, run only for the step with this label.
-            force: Force run and overwrites result file(s) if already exist(s).
-            debug: If False, log scripts errors and not raise them.
-        """
-
-        return self.dataset._run_manager.run(
-            self, step_label=step_label, force=force, debug=debug
-        )
+        return self.steps.run(*args, **kwargs)
 
     def status(self) -> pd.DataFrame:
         """
