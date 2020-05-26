@@ -4,6 +4,7 @@ from typing import Optional
 import pandas as pd
 from sinagot.models import Model, Step
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
+from sinagot.models.exceptions import NoModalityError, NotFoundError
 
 
 class StepCollection(Model):
@@ -26,49 +27,86 @@ class StepCollection(Model):
         self.task = self.model.task
         self.modality = self.model.modality
 
-    @property
-    def _scripts_names(self):
-        try:
-            sn = self.dataset.config["modalities"][self.modality]["scripts"]
-        except KeyError:
-            return []
-        try:
-            return (
-                sn
-                + self.dataset.config["modalities"][self.modality]["tasks_scripts"][
-                    self.task
-                ]
-            )
-        except KeyError:
-            return sn
+    def get(self, script_name: str):
+        """find a step instance
 
-    def get_script(self, script_name):
-        return self._get_module("Script", self.modality, script_name)
+        Params:
+            script: script label to find.
 
-    def get(self, script):
-        return Step(script=script, model=self.model)
+        Returns:
+            Step instance if model has modality, dict with first step for each modality either.
+        """
+        return self._modality_case_response("_modality_get", script_name)
 
-    def all(self):
-        for script_name in self._scripts_names:
-            yield self.get(script_name)
-
-    def find(self, pattern):
-
-        for script_name in self._scripts_names:
-            if pattern in script_name:
-                yield self.get(script_name)
+    def _modality_get(self, script_name):
+        if not self.model.modality:
+            raise NoModalityError
+        return Step(script=script_name, model=self.model)
 
     def first(self):
         """Get the first step.
 
         Returns:
-            instance: Step instance
+            Step instance if model has modality, dict with first step for each modality either.
         """
+        return self._modality_case_response("_modality_first")
 
-        return self.get(self._scripts_names[0])
+    def _modality_first(self):
+        if not self.model.modality:
+            raise NoModalityError
+        names = self._modality_scripts_names()
+        if not names:
+            return None
+        return self.get(names[0])
+
+    def all(self):
+        for script_name in self._scripts_names():
+            yield self.get(script_name)
+
+    def find(self, pattern):
+
+        for script_name in self._scripts_names():
+            if pattern in script_name:
+                yield self.get(script_name)
 
     def count(self):
-        return len(self._scripts_names)
+        return len(self._scripts_names())
+
+    def _modality_case_response(self, method, *args):
+        if self.model.modality:
+            return getattr(self, method)(*args)
+        else:
+            return {
+                modality.modality: self._modality_default_none(modality, method, *args)
+                for modality in self.model.iter_modalities()
+            }
+
+    def _modality_default_none(self, modality, method, *args):
+        try:
+            return getattr(modality.steps, method)(*args)
+        except NotFoundError:
+            return None
+
+    def _scripts_names(self):
+        if self.modality:
+            return self._modality_scripts_names()
+        else:
+            return {
+                modality.modality: modality.steps._modality_scripts_names()
+                for modality in self.model.iter_modalities()
+            }
+
+    def _modality_scripts_names(self):
+        mod_config = self.dataset.config["modalities"].get(self.modality, {})
+        shared_names = mod_config.get("scripts", [])
+        task_scripts = mod_config.get("tasks_scripts", {})
+        if self.task:
+            task_names = task_scripts.get(self.task, [])
+        else:
+            task_names = [
+                script for scripts in task_scripts.values() for script in scripts
+            ]
+        return shared_names + task_names
 
     def run(
         self,
