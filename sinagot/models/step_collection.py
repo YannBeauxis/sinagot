@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from typing import Optional
+from typing import Optional, Union
 import pandas as pd
 from sinagot.models import Model, Step
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
@@ -8,26 +8,21 @@ from sinagot.models.exceptions import NoModalityError, NotFoundError, NotUnitErr
 
 
 class StepCollection(Model):
-    """Manage all steps of a category.
-
-    Args:
-        model (instance): Parent model of the collection.
-
-    Attributes:
-        model (instance): Parent model of the collection.
-
-    """
+    """Manage the collection of all steps of a scope."""
 
     _MODEL_TYPE = "step_collection"
 
     def __init__(self, model):
-
+        """
+        Params:
+            model (instance): Parent model of the collection.
+        """
         super().__init__(model.dataset)
         self.model = model
         self.task = self.model.task
         self.modality = self.model.modality
 
-    def get(self, script_name: str):
+    def get(self, script_name: str) -> Union[Step, dict]:
         """find a step by script name.
 
         Params:
@@ -43,7 +38,7 @@ class StepCollection(Model):
             raise NoModalityError
         return Step(script=script_name, model=self.model)
 
-    def first(self):
+    def first(self) -> Union[Step, dict]:
         """Get the first step.
 
         Returns:
@@ -59,7 +54,7 @@ class StepCollection(Model):
             return None
         return self.get(names[0])
 
-    def count(self):
+    def count(self) -> int:
         """Get the number of steps.
 
         Returns:
@@ -87,27 +82,6 @@ class StepCollection(Model):
         except NotFoundError:
             return None
 
-    def _scripts_names(self):
-        if self.modality:
-            return self._modality_scripts_names()
-        else:
-            return {
-                modality.modality: modality.steps._modality_scripts_names()
-                for modality in self.model.iter_modalities()
-            }
-
-    def _modality_scripts_names(self):
-        mod_config = self.dataset.config["modalities"].get(self.modality, {})
-        shared_names = mod_config.get("scripts", [])
-        task_scripts = mod_config.get("tasks_scripts", {})
-        if self.task:
-            task_names = task_scripts.get(self.task, [])
-        else:
-            task_names = [
-                script for scripts in task_scripts.values() for script in scripts
-            ]
-        return shared_names + task_names
-
     def run(
         self,
         step_label: Optional[str] = None,
@@ -127,7 +101,12 @@ class StepCollection(Model):
             dataset, step_label=step_label, force=force, debug=debug
         )
 
-    def status(self):
+    def status(self) -> pd.DataFrame:
+        """Get status of all steps
+
+        Returns:
+            A pandas DataFrame with a row for each step.
+        """
         if self.model._MODEL_TYPE == "record":
             return self._record_status()
         elif self.model.count() == 0:
@@ -167,3 +146,24 @@ class StepCollection(Model):
     def _modality_all(self):
         for script_name in self._scripts_names():
             yield self.get(script_name)
+
+    def _scripts_names(self):
+        if self.modality:
+            return self._modality_scripts_names()
+        else:
+            return {
+                modality.modality: modality.steps._modality_scripts_names()
+                for modality in self.model.iter_modalities()
+            }
+
+    def _modality_scripts_names(self):
+        mod_config = self.dataset.config["modalities"].get(self.modality, {})
+        shared_names = mod_config.get("scripts", [])
+        task_scripts = mod_config.get("tasks_scripts", {})
+        if self.task:
+            task_names = task_scripts.get(self.task, [])
+        else:
+            task_names = [
+                script for scripts in task_scripts.values() for script in scripts
+            ]
+        return shared_names + task_names
