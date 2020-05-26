@@ -61,16 +61,6 @@ class Record(Scope):
     def subset(self) -> "Subset":
         return self.record_collection
 
-    def exists(self) -> bool:
-        """
-        Check if the record exists in the record_collection with the same task and modality values.
-
-        Returns:
-            True if the record exists
-        """
-
-        return self.record_collection.has(self.id)
-
     def logs(self) -> pd.DataFrame:
         """
         Returns:
@@ -141,7 +131,6 @@ class Record(Scope):
 
         if self.is_unit:
             return pd.Series(
-                # {"task": self.task, "modality": self.modality, "count": 1,}
                 {
                     "task": self.task,
                     "modality": self.modality,
