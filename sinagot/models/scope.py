@@ -220,19 +220,8 @@ class Scope(Model):
 
         return self.steps.run(*args, **kwargs)
 
-    def status(self) -> pd.DataFrame:
-        """
-        Returns:
-            Status for each step.
-        """
+    # TODO: deprecated warning
+    def status(self):
+        """DEPRECATED: Use `steps.status()` instead"""
 
-        try:
-            return pd.concat(
-                [
-                    unit.steps.status()
-                    for unit in self.iter_units()
-                    if unit.steps.status() is not None
-                ]
-            )
-        except ValueError:
-            return pd.DataFrame()
+        return self.steps.status()

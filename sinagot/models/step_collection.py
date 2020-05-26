@@ -110,10 +110,13 @@ class StepCollection(Model):
         if self.model._MODEL_TYPE == "record":
             return self._record_status()
         elif self.model.count() == 0:
-            return None
+            return pd.DataFrame([])
         else:
             return pd.concat(
-                [rec.status() for rec in self.model.all() if rec.status() is not None]
+                [
+                    rec.steps.status()
+                    for rec in self.model.all()
+                ]
             )
 
     def _record_status(self):
