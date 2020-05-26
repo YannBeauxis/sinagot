@@ -47,7 +47,12 @@ class Step(Model):
             logger_namespace=self.logger.name,
         )
 
-    def status(self):
+    def status(self) -> int:
+        """Get status code.
+
+        Returns:
+            sinagot.utils.StepStatus value
+        """
         if self._script_path_exists("output"):
             return StepStatus.DONE
         try:
@@ -70,9 +75,19 @@ class Step(Model):
             return all([p.exists() for p in path.values()])
 
     def run(self, force=False):
+        """
+        Run the step script.
+        
+        Args:
+            force: Force run and overwrites result file(s) if already exist(s).
+        """
         self.model.run(step_label=self.label, force=force)
 
-    def logs(self):
+    def logs(self) -> pd.DataFrame:
+        """
+        Returns:
+            Logs history.
+        """
         try:
             return self.model.logs().query(
                 "{} == '{}'".format(LOG_STEP_LABEL, self.label)

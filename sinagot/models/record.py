@@ -6,11 +6,12 @@ from typing import Optional
 from io import StringIO
 import pandas as pd
 from sinagot.models import Scope
-from sinagot.utils import record_log_file_path
 from sinagot.utils import (
+    record_log_file_path,
     LOG_STEP_LABEL,
     LOG_STEP_STATUS,
 )
+from sinagot.models.exceptions import NotUnitError
 
 
 class Record(Scope):
@@ -89,20 +90,6 @@ class Record(Scope):
             return pd.DataFrame()
 
     # TODO: Test
-
-    def _count_detail(self):
-
-        if self.is_unit:
-            return pd.Series(
-                {
-                    "task": self.task,
-                    "modality": self.modality,
-                    "count": sum([self.exists()]),
-                }
-            )
-        else:
-            return pd.DataFrame([unit._count_detail() for unit in self.iter_units()])
-
     def count_detail(
         self, groupby: Optional[str] = None, group_mode: Optional[str] = "all"
     ) -> pd.DataFrame:
@@ -149,6 +136,28 @@ class Record(Scope):
                 count = count.mean()
             return count.reset_index().reindex(groupby + ["count"], axis=1)
         return count
+
+    def _count_detail(self):
+
+        if self.is_unit:
+            return pd.Series(
+                # {"task": self.task, "modality": self.modality, "count": 1,}
+                {
+                    "task": self.task,
+                    "modality": self.modality,
+                    "count": sum([self._unit_has_raw_data()]),
+                }
+            )
+        else:
+            return pd.DataFrame([unit._count_detail() for unit in self.iter_units()])
+
+    def _unit_has_raw_data(self):
+        if not self.is_unit:
+            raise NotUnitError
+        first_step = self.steps.first()
+        if first_step:
+            return first_step.script.data_exist.input
+        return False
 
     def _count_backbone(self):
         """Used for count_detail() method."""

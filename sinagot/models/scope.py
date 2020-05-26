@@ -1,21 +1,20 @@
 # coding=utf-8
 
 from typing import Optional, Generator
-import pandas as pd
 from sinagot.models import Model, StepCollection
 
 
 class Scope(Model):
-    # """
-    # A Scope instance can :
+    """
+    A Scope instance can :
 
-    # - Handle task and modality subscopes.
+    - Handle task and modality subscopes.
 
-    # - Handle StepCollection with `.steps` attribute.
+    - Handle StepCollection with `.steps` attribute.
 
-    # Note:
-    #     Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
-    # """
+    Note:
+        Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
+    """
 
     _REPR_ATTRIBUTES = ["task", "modality"]
     _MODEL_TYPE = None
@@ -43,16 +42,16 @@ class Scope(Model):
             "## init scope for %s. _subscope_class: %s", self, self._subscope_class
         )
         if task is not None:
-            self.task: str = task
+            self.task: Optional[str] = task
             """Task of the scope. If `None`, the scope represents all available tasks."""
         if modality is not None:
-            self.modality: str = modality
+            self.modality: Optional[str] = modality
             """Modality of the scope. If `None`, the scope represents all available modalities."""
         if self._subscope_class is None:
             self._subscope_class = self.__class__
         super().__init__(dataset)
 
-        self.steps: "StepCollection" = StepCollection(self)
+        self.steps: StepCollection = StepCollection(self)
         """Collection of steps."""
 
     @classmethod
@@ -176,7 +175,9 @@ class Scope(Model):
 
     #  TODO: Deprecated warning
     def units(self):
-        """DEPRECATED: Use `iter_units()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_units()` instead"""
         return self.iter_units()
 
     def iter_tasks(self) -> Generator["Scope", None, None]:
@@ -194,7 +195,9 @@ class Scope(Model):
 
     #  TODO: Deprecated warning
     def tasks(self):
-        """DEPRECATED: Use `iter_tasks()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_tasks()` instead"""
         return self.iter_tasks()
 
     def iter_modalities(self) -> Generator["Scope", None, None]:
@@ -211,17 +214,24 @@ class Scope(Model):
 
     #  TODO: Deprecated warning
     def modalities(self):
-        """DEPRECATED: Use `iter_modalities()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_modalities()` instead"""
         return self.iter_modalities()
 
     # TODO: deprecated warning
     def run(self, *args, **kwargs):
-        """DEPRECATED: Use `steps.run()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `steps.run()` instead"""
 
         return self.steps.run(*args, **kwargs)
 
     # TODO: deprecated warning
     def status(self):
-        """DEPRECATED: Use `steps.status()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `steps.status()` instead
+        """
 
         return self.steps.status()
