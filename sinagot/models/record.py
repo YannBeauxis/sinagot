@@ -101,7 +101,7 @@ class Record(Scope):
                 }
             )
         else:
-            return pd.DataFrame([unit._count_detail() for unit in self.units()])
+            return pd.DataFrame([unit._count_detail() for unit in self.iter_units()])
 
     def count_detail(
         self, groupby: Optional[str] = None, group_mode: Optional[str] = "all"
@@ -161,6 +161,16 @@ class Record(Scope):
             ]
         )
 
+    def status_json(self) -> str:
+        """
+        Returns:
+            Status in JSON format for web API.
+        """
+
+        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
+
+        return json.dumps(self._structure_status(columns))
+
     def _structure_status(self, columns):
 
         df = self.status()
@@ -180,13 +190,3 @@ class Record(Scope):
             return sd
 
         return get_status_dict(df)
-
-    def status_json(self) -> str:
-        """
-        Returns:
-            Status in JSON format for web API.
-        """
-
-        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
-
-        return json.dumps(self._structure_status(columns))

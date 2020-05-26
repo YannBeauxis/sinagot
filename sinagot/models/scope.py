@@ -153,7 +153,7 @@ class Scope(Model):
 
         return not (self.task is None or self.modality is None)
 
-    def units(self) -> Generator["Scope", None, None]:
+    def iter_units(self) -> Generator["Scope", None, None]:
         """
         Generate each 'unit' subscopes of the current scope,
         i.e. subscope with specific task and modality
@@ -173,6 +173,11 @@ class Scope(Model):
                 modalities = [task]
             for modality in modalities:
                 yield modality
+
+    #  TODO: Deprecated warning
+    def units(self):
+        """DEPRECATED: Use `iter_units()` instead"""
+        return self.iter_units()
 
     def iter_tasks(self) -> Generator["Scope", None, None]:
         """
@@ -225,7 +230,7 @@ class Scope(Model):
             return pd.concat(
                 [
                     unit.steps.status()
-                    for unit in self.units()
+                    for unit in self.iter_units()
                     if unit.steps.status() is not None
                 ]
             )

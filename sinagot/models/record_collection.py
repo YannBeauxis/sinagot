@@ -49,7 +49,7 @@ class RecordCollection(Scope):
             for record_id in self._ids_unit():
                 yield record_id
         else:
-            units = self.units()
+            units = self.iter_units()
             ids = []
             for unit in units:
                 for record_id in unit.ids():
