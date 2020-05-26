@@ -4,7 +4,7 @@ from typing import Optional
 import pandas as pd
 from sinagot.models import Model, Step
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
-from sinagot.models.exceptions import NoModalityError, NotFoundError
+from sinagot.models.exceptions import NoModalityError, NotFoundError, NotUnitError
 
 
 class StepCollection(Model):
@@ -58,10 +58,6 @@ class StepCollection(Model):
         if not names:
             return None
         return self.get(names[0])
-
-    def all(self):
-        for script_name in self._scripts_names():
-            yield self.get(script_name)
 
     def count(self):
         """Get the number of steps.
@@ -142,19 +138,32 @@ class StepCollection(Model):
             )
 
     def _record_status(self):
-        if self.count() > 0:
+        if self.count():
             return pd.DataFrame(
                 [
-                    {
-                        "record_id": self.model.id,
-                        "task": self.task,
-                        "modality": self.modality,
-                        "step_index": index,
-                        LOG_STEP_LABEL: step.label,
-                        LOG_STEP_STATUS: step.status(),
-                    }
-                    for index, step in zip(range(1, self.count() + 1), self.all())
+                    unit.steps._record_status_unit(index, step)
+                    for unit in self.model.iter_units()
+                    for index, step in zip(
+                        range(unit.steps.count()), unit.steps._modality_all()
+                    )
                 ]
             )
         else:
             return None
+
+    def _record_status_unit(self, index, step):
+        model = self.model
+        if not model.is_unit:
+            raise NotUnitError
+        return {
+            "record_id": self.model.id,
+            "task": self.task,
+            "modality": self.modality,
+            "step_index": index + 1,
+            LOG_STEP_LABEL: step.label,
+            LOG_STEP_STATUS: step.status(),
+        }
+
+    def _modality_all(self):
+        for script_name in self._scripts_names():
+            yield self.get(script_name)
