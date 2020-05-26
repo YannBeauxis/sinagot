@@ -28,13 +28,13 @@ class StepCollection(Model):
         self.modality = self.model.modality
 
     def get(self, script_name: str):
-        """find a step instance
+        """find a step by script name.
 
         Params:
             script: script label to find.
 
         Returns:
-            Step instance if model has modality, dict with first step for each modality either.
+            `Step` if model has modality, `dict` with `Step` or `None` as value for each modality either.
         """
         return self._modality_case_response("_modality_get", script_name)
 
@@ -47,7 +47,7 @@ class StepCollection(Model):
         """Get the first step.
 
         Returns:
-            Step instance if model has modality, dict with first step for each modality either.
+            `Step` if model has modality, `dict` with first step as value for each modality either.
         """
         return self._modality_case_response("_modality_first")
 
@@ -64,6 +64,16 @@ class StepCollection(Model):
             yield self.get(script_name)
 
     def count(self):
+        """Get the number of steps.
+
+        Returns:
+            `int` if model has modality, `dict` with step count as value for each modality either.
+        """
+        return self._modality_case_response("_modality_count")
+
+    def _modality_count(self):
+        if not self.model.modality:
+            raise NoModalityError
         return len(self._scripts_names())
 
     def _modality_case_response(self, method, *args):
@@ -71,13 +81,13 @@ class StepCollection(Model):
             return getattr(self, method)(*args)
         else:
             return {
-                modality.modality: self._modality_default_none(modality, method, *args)
+                modality.modality: modality.steps._modality_case_default(method, *args)
                 for modality in self.model.iter_modalities()
             }
 
-    def _modality_default_none(self, modality, method, *args):
+    def _modality_case_default(self, method, *args):
         try:
-            return getattr(modality.steps, method)(*args)
+            return getattr(self, method)(*args)
         except NotFoundError:
             return None
 
