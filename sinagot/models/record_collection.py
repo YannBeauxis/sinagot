@@ -66,13 +66,10 @@ class RecordCollection(Scope):
         except KeyError:
             file_match = config["records"]["file_match"]
 
-        try:
-            first_script = self.steps.first().script
-        except IndexError:
-            first_script = False
+        first_script = self.steps.first()
 
         if first_script:
-            path_in = first_script.PATH_IN
+            path_in = first_script.script.PATH_IN
             if isinstance(path_in, dict):
                 path_in = path_in.values()
             else:

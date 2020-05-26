@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 from sinagot.models import Model
 from sinagot.utils import StepStatus, LOG_STEP_LABEL, LOG_STEP_STATUS
+from sinagot.models.exceptions import NotFoundError, NoModalityError
 
 
 class Step(Model):
@@ -16,6 +17,8 @@ class Step(Model):
 
     def __init__(self, script, model):
 
+        if not model.modality:
+            raise NoModalityError
         self.model = model
         self.task = model.task
         self.modality = model.modality
@@ -25,7 +28,10 @@ class Step(Model):
             script_class = script
             self.label = script.__class__.__name__
         elif isinstance(script, str):
-            script_class = self._get_module("Script", self.modality, script)
+            try:
+                script_class = self._get_module("Script", self.modality, script)
+            except FileNotFoundError as ex:
+                raise NotFoundError from ex
             self.label = script
         else:
             raise AttributeError("Type {} is not valid for script".format(type(script)))
@@ -41,13 +47,6 @@ class Step(Model):
             logger_namespace=self.logger.name,
         )
 
-    def _script_path_exists(self, position: str) -> bool:
-        path = getattr(self.script.path, position)
-        if isinstance(path, Path):
-            return path.exists()
-        if isinstance(path, dict):
-            return all([p.exists() for p in path.values()])
-
     def status(self):
         if self._script_path_exists("output"):
             return StepStatus.DONE
@@ -62,6 +61,13 @@ class Step(Model):
             return StepStatus.DATA_READY
         else:
             return StepStatus.INIT
+
+    def _script_path_exists(self, position: str) -> bool:
+        path = getattr(self.script.path, position)
+        if isinstance(path, Path):
+            return path.exists()
+        if isinstance(path, dict):
+            return all([p.exists() for p in path.values()])
 
     def run(self, force=False):
         self.model.run(step_label=self.label, force=force)

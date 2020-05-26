@@ -1,5 +1,14 @@
 import pytest
 from sinagot.utils import StepStatus
+from sinagot.models import Step
+from sinagot.models.exceptions import NotFoundError, NoModalityError
+
+
+def test_init_error(dataset):
+    with pytest.raises(NoModalityError):
+        Step("missing_label", dataset)
+    with pytest.raises(NotFoundError):
+        Step("missing_label", dataset.behavior)
 
 
 def test_reload_script(dataset):
