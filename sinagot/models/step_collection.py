@@ -63,12 +63,6 @@ class StepCollection(Model):
         for script_name in self._scripts_names():
             yield self.get(script_name)
 
-    def find(self, pattern):
-
-        for script_name in self._scripts_names():
-            if pattern in script_name:
-                yield self.get(script_name)
-
     def count(self):
         return len(self._scripts_names())
 
@@ -129,25 +123,28 @@ class StepCollection(Model):
 
     def status(self):
         if self.model._MODEL_TYPE == "record":
-            if self.count() > 0:
-                return pd.DataFrame(
-                    [
-                        {
-                            "record_id": self.model.id,
-                            "task": self.task,
-                            "modality": self.modality,
-                            "step_index": index,
-                            LOG_STEP_LABEL: step.label,
-                            LOG_STEP_STATUS: step.status(),
-                        }
-                        for index, step in zip(range(1, self.count() + 1), self.all())
-                    ]
-                )
-            else:
-                return None
+            return self._record_status()
         elif self.model.count() == 0:
             return None
         else:
             return pd.concat(
                 [rec.status() for rec in self.model.all() if rec.status() is not None]
             )
+
+    def _record_status(self):
+        if self.count() > 0:
+            return pd.DataFrame(
+                [
+                    {
+                        "record_id": self.model.id,
+                        "task": self.task,
+                        "modality": self.modality,
+                        "step_index": index,
+                        LOG_STEP_LABEL: step.label,
+                        LOG_STEP_STATUS: step.status(),
+                    }
+                    for index, step in zip(range(1, self.count() + 1), self.all())
+                ]
+            )
+        else:
+            return None
