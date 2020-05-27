@@ -6,17 +6,18 @@ from typing import Optional
 from io import StringIO
 import pandas as pd
 from sinagot.models import Scope
-from sinagot.utils import record_log_file_path
 from sinagot.utils import (
+    record_log_file_path,
     LOG_STEP_LABEL,
     LOG_STEP_STATUS,
 )
+from sinagot.models.exceptions import NotUnitError
 
 
 class Record(Scope):
     """
     A Record instance is used to manipulate a single record data.
-    It's accessed from a [Subset](subset.md).
+    It's accessed from a [RecordCollection](record_collection.md).
     
     Note:
         Inherite [Scope](scope.md) methods.
@@ -42,36 +43,13 @@ class Record(Scope):
         self.id = record_id
         super().__init__(dataset, *args, **kwargs)
 
-    @property
-    def subset(self) -> "Subset":
-        """
-        Subset instance with same scope than the record i.e. the same task and modality value.
-        """
-
-        subset = self.dataset
-        if self.task is not None:
-            subset = getattr(subset, self.task)
-        if self.modality is not None:
-            subset = getattr(subset, self.modality)
-        return subset
-
-    def exists(self) -> bool:
-        """
-        Check if the record exists in the subset with the same task and modality values.
-
-        Returns:
-            True if the record exists
-        """
-
-        return self.subset.has(self.id)
-
     def logs(self) -> pd.DataFrame:
         """
         Returns:
             Logs history.
         """
 
-        log_path = record_log_file_path(self.dataset._data_path, self.id)
+        log_path = record_log_file_path(self.dataset.data_path, self.id)
         if log_path.exists():
             json = "[{}]".format(",".join(log_path.read_text().split("\n")[:-1]))
             df = pd.read_json(StringIO(json), orient="records")
@@ -84,20 +62,6 @@ class Record(Scope):
             return pd.DataFrame()
 
     # TODO: Test
-
-    def _count_detail(self):
-
-        if self.is_unit:
-            return pd.Series(
-                {
-                    "task": self.task,
-                    "modality": self.modality,
-                    "count": sum([self.exists()]),
-                }
-            )
-        else:
-            return pd.DataFrame([unit._count_detail() for unit in self.units()])
-
     def count_detail(
         self, groupby: Optional[str] = None, group_mode: Optional[str] = "all"
     ) -> pd.DataFrame:
@@ -145,6 +109,27 @@ class Record(Scope):
             return count.reset_index().reindex(groupby + ["count"], axis=1)
         return count
 
+    def _count_detail(self):
+
+        if self.is_unit:
+            return pd.Series(
+                {
+                    "task": self.task,
+                    "modality": self.modality,
+                    "count": sum([self._unit_has_raw_data()]),
+                }
+            )
+        else:
+            return pd.DataFrame([unit._count_detail() for unit in self.iter_units()])
+
+    def _unit_has_raw_data(self):
+        if not self.is_unit:
+            raise NotUnitError
+        first_step = self.steps.first()
+        if first_step:
+            return first_step.script.data_exist.input
+        return False
+
     def _count_backbone(self):
         """Used for count_detail() method."""
 
@@ -155,6 +140,16 @@ class Record(Scope):
                 for modality in self.config["modalities"]
             ]
         )
+
+    def status_json(self) -> str:
+        """
+        Returns:
+            Status in JSON format for web API.
+        """
+
+        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
+
+        return json.dumps(self._structure_status(columns))
 
     def _structure_status(self, columns):
 
@@ -175,13 +170,3 @@ class Record(Scope):
             return sd
 
         return get_status_dict(df)
-
-    def status_json(self) -> str:
-        """
-        Returns:
-            Status in JSON format for web API.
-        """
-
-        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
-
-        return json.dumps(self._structure_status(columns))

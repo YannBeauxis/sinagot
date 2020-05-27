@@ -829,6 +829,17 @@ python-versions = "*"
 version = "2020.4.4"
 
 [[package]]
+category = "dev"
+description = "a python refactoring library..."
+name = "rope"
+optional = false
+python-versions = "*"
+version = "0.17.0"
+
+[package.extras]
+dev = ["pytest"]
+
+[[package]]
 category = "main"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
@@ -960,7 +971,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "a2652632a8a957d2790e9c750e49ba312c806bde7af1532ad277c33587120501"
+content-hash = "763770333565a9fcc52c5fe82a0ce0c51c0d1049bce8b647bc5ce6466f134881"
 python-versions = "^3.6.1"
 
 [metadata.files]
@@ -1404,6 +1415,9 @@ regex = [
     {file = "regex-2020.4.4-cp38-cp38-win32.whl", hash = "sha256:2a3bf8b48f8e37c3a40bb3f854bf0121c194e69a650b209628d951190b862de3"},
     {file = "regex-2020.4.4-cp38-cp38-win_amd64.whl", hash = "sha256:5bfed051dbff32fd8945eccca70f5e22b55e4148d2a8a45141a3b053d6455ae3"},
     {file = "regex-2020.4.4.tar.gz", hash = "sha256:295badf61a51add2d428a46b8580309c520d8b26e769868b922750cf3ce67142"},
+]
+rope = [
+    {file = "rope-0.17.0.tar.gz", hash = "sha256:658ad6705f43dcf3d6df379da9486529cf30e02d9ea14c5682aa80eb33b649e1"},
 ]
 six = [
     {file = "six-1.14.0-py2.py3-none-any.whl", hash = "sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c"},

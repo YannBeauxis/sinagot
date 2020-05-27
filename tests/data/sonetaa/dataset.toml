@@ -29,7 +29,7 @@
         scripts = ['preprocess']
         tasks_scripts.RS = ['alpha']
     [modalities.behavior]
-        models.subset = 'BehaviorSubset'
+        models.record_collection = 'BehaviorRecordCollection'
         models.record = 'BehaviorRecord'
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]

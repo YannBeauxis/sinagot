@@ -1,24 +1,24 @@
 # coding=utf-8
 
-from typing import Optional, Generator, TypeVar
-import pandas as pd
+from typing import Optional, Generator
 from sinagot.models import Model, StepCollection
 
 
 class Scope(Model):
     """
     A Scope instance can :
-    
+
     - Handle task and modality subscopes.
 
     - Handle StepCollection with `.steps` attribute.
 
     Note:
-        Scope is base class for [Subset](subset.md) and [Record](record.md).
+        Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
     """
 
     _REPR_ATTRIBUTES = ["task", "modality"]
     _MODEL_TYPE = None
+    _DEPRECATED_MODEL_TYPES = {"subset": "record_collection"}
     _subscope_class = None
     _tasks = []
     task = None
@@ -42,16 +42,16 @@ class Scope(Model):
             "## init scope for %s. _subscope_class: %s", self, self._subscope_class
         )
         if task is not None:
-            self.task: str = task
+            self.task: Optional[str] = task
             """Task of the scope. If `None`, the scope represents all available tasks."""
         if modality is not None:
-            self.modality: str = modality
+            self.modality: Optional[str] = modality
             """Modality of the scope. If `None`, the scope represents all available modalities."""
         if self._subscope_class is None:
             self._subscope_class = self.__class__
         super().__init__(dataset)
 
-        self.steps: "StepCollection" = self._set_step_collection()
+        self.steps: StepCollection = StepCollection(self)
         """Collection of steps."""
 
     @classmethod
@@ -79,24 +79,38 @@ class Scope(Model):
         """Add subscope to self.__class__ as a property
         that call an instance of local defined subclass"""
 
-        # Search for custom subscope class in config
-        model_type = cls._MODEL_TYPE
-        _subscope_class = cls
-        if subscope == "modality":
-            try:
-                class_name = dataset.config["modalities"][value]["models"][model_type]
-                _subscope_class = dataset._get_module(
-                    class_name, value, "models", model_type
-                )
-            except KeyError:
-                pass
-
+        _subscope_class = cls._search_custom_subscope_in_config(
+            subscope, value, dataset
+        )
+        subscope_access = property(
+            cls._property_factory(_subscope_class, subscope, value)
+        )
         setattr(
-            cls,
-            value,
-            property(cls._property_factory(_subscope_class, subscope, value)),
+            cls, value, subscope_access,
         )
         return value
+
+    @classmethod
+    def _search_custom_subscope_in_config(cls, subscope, value, dataset):
+        model_type = cls._MODEL_TYPE
+        if subscope == "modality":
+            sub_config = dataset.config
+            for key in ("modalities", value, "models"):
+                sub_config = sub_config.get(key, {})
+            custom_class, model_type = cls._DEPRECATED_get_model_type_from_config(
+                sub_config, model_type
+            )
+            if custom_class:
+                return dataset._get_module(custom_class, value, "models", model_type)
+        return cls
+
+    #  TODO: Deprecated warning
+    @classmethod
+    def _DEPRECATED_get_model_type_from_config(cls, sub_config, model_type):
+        for key in sub_config.keys():
+            if cls._DEPRECATED_MODEL_TYPES.get(key) == model_type:
+                return sub_config[key], key
+        return sub_config.get(model_type), model_type
 
     @staticmethod
     def _property_factory(_subscope_class, subscope, value):
@@ -139,7 +153,7 @@ class Scope(Model):
 
         return not (self.task is None or self.modality is None)
 
-    def units(self) -> Generator["Scope", None, None]:
+    def iter_units(self) -> Generator["Scope", None, None]:
         """
         Generate each 'unit' subscopes of the current scope,
         i.e. subscope with specific task and modality
@@ -160,7 +174,14 @@ class Scope(Model):
             for modality in modalities:
                 yield modality
 
-    def tasks(self) -> Generator["Scope", None, None]:
+    #  TODO: Deprecated warning
+    def units(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_units()` instead"""
+        return self.iter_units()
+
+    def iter_tasks(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its task.
 
@@ -173,7 +194,14 @@ class Scope(Model):
                 model = getattr(self, task)
                 yield model
 
-    def modalities(self) -> Generator["Scope", None, None]:
+    #  TODO: Deprecated warning
+    def tasks(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_tasks()` instead"""
+        return self.iter_tasks()
+
+    def iter_modalities(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its modalities.
 
@@ -185,44 +213,26 @@ class Scope(Model):
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
 
-    def _set_step_collection(self):
-        """Used in __init__(), set 'steps' attribute to an instance of step collection class"""
+    #  TODO: Deprecated warning
+    def modalities(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_modalities()` instead"""
+        return self.iter_modalities()
 
-        if self.is_unit:
-            step_collection_class = StepCollection
-            return step_collection_class(self)
+    # TODO: deprecated warning
+    def run(self, *args, **kwargs):
+        """
+        !!! warning 
+            **DEPRECATED** Use `steps.run()` instead"""
 
-    def run(
-        self,
-        step_label: Optional[str] = None,
-        force: Optional[bool] = False,
-        debug: Optional[bool] = False,
-    ):
-        """Run all steps of the scope.
-        
-        Args:
-            step_label: if not `None`, run only for the step with this label.
-            force: Force run and overwrites result file(s) if already exist(s).
-            debug: If False, log scripts errors and not raise them.
+        return self.steps.run(*args, **kwargs)
+
+    # TODO: deprecated warning
+    def status(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `steps.status()` instead
         """
 
-        return self.dataset._run_manager.run(
-            self, step_label=step_label, force=force, debug=debug
-        )
-
-    def status(self) -> pd.DataFrame:
-        """
-        Returns:
-            Status for each step.
-        """
-
-        try:
-            return pd.concat(
-                [
-                    unit.steps.status()
-                    for unit in self.units()
-                    if unit.steps.status() is not None
-                ]
-            )
-        except ValueError:
-            return pd.DataFrame()
+        return self.steps.status()

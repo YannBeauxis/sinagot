@@ -37,7 +37,7 @@ class RunManager(Model):
         step_label = step["step_label"]
         script_class = self._get_module("Script", modality, step_label)
         script = script_class(
-            data_path=self.dataset._data_path,
+            data_path=self.dataset.data_path,
             id_=id_,
             task=task,
             logger_namespace=self.logger.name,
@@ -53,3 +53,6 @@ class RunManager(Model):
                 return arg
 
         return func
+
+    def close(self):
+        pass

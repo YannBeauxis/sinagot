@@ -7,9 +7,9 @@ import pandas as pd
 from sinagot.models import Scope, Record
 
 
-class Subset(Scope):
+class RecordCollection(Scope):
     """
-    A Subset is used to manipulate a collection of [Record](record.md).
+    A RecordCollection is used to manipulate a collection of [Record](record.md).
 
     Note:
         Inherite [Scope](scope.md) methods.
@@ -17,15 +17,16 @@ class Subset(Scope):
     Example:
 
     ```python
-    # access subset of all EEG records (EEG is a task)
+    # access record_collection of all EEG records (EEG is a task)
     sub = ds.EEG  # ds is a Dataset instance
     ```
     """
 
-    _MODEL_TYPE = "subset"
+    _MODEL_TYPE = "record_collection"
     _record_class = Record
 
     def __init__(self, *args, **kwargs):
+        self._subscope_class = self.__class__
         super().__init__(*args, **kwargs)
         modality = self.modality
         # Check for custom record class
@@ -39,7 +40,7 @@ class Subset(Scope):
                 pass
 
     def ids(self) -> Generator[str, None, None]:
-        """Generator all record ids within the subset.
+        """Generator all record ids within the record_collection.
         
         Returns:
             Record ID.
@@ -49,7 +50,7 @@ class Subset(Scope):
             for record_id in self._ids_unit():
                 yield record_id
         else:
-            units = self.units()
+            units = self.iter_units()
             ids = []
             for unit in units:
                 for record_id in unit.ids():
@@ -66,13 +67,10 @@ class Subset(Scope):
         except KeyError:
             file_match = config["records"]["file_match"]
 
-        try:
-            first_script = self.steps.first().script
-        except IndexError:
-            first_script = False
+        first_script = self.steps.first()
 
         if first_script:
-            path_in = first_script.PATH_IN
+            path_in = first_script.script.PATH_IN
             if isinstance(path_in, dict):
                 path_in = path_in.values()
             else:
@@ -87,7 +85,7 @@ class Subset(Scope):
                     id="({})".format(config["records"]["id_pattern"]),
                     task="(?:{})".format(self.task),
                 )
-                root_path = os.path.join(self.dataset._data_path, p_in[0])
+                root_path = os.path.join(self.dataset.data_path, p_in[0])
                 for root, dirs, files in os.walk(root_path):
                     if file_match[1]:
                         # Search ID wihtin files
@@ -105,7 +103,7 @@ class Subset(Scope):
                                 yield record_id
 
     def all(self) -> Generator["Record", None, None]:
-        """Generate all records instances of the subset.
+        """Generate all records instances of the record_collection.
         
         Returns:
             sinagot.models.Record: Record instance
@@ -145,7 +143,7 @@ class Subset(Scope):
 
     def has(self, record_id: str) -> bool:
         """
-        Check existance of a record in the subset.
+        Check existance of a record in the record_collection.
         
         Args:
             record_id: Id of the record.
@@ -170,14 +168,14 @@ class Subset(Scope):
         return sum(1 for rec in self.ids())
 
     # TODO: To test
-
     def count_detail(self, *args, **kwargs) -> pd.DataFrame:
         """
         Returns:
             Number of records present in each tasks and modalities.
 
         Note:
-            Refer to [`Record.count_detail()`](record.md#sinagot.models.record.Record.count_detail) for more information
+            Refer to [`Record.count_detail()`](record.md#sinagot.models.record.Record.count_detail) 
+            for more information
         """
 
         count = None
@@ -202,3 +200,11 @@ class Subset(Scope):
                 )
 
         return count.groupby(list(columns[:-1])).sum().reset_index()
+
+    # TODO: To test
+    def logs(self) -> pd.DataFrame:
+        """
+        Returns:
+            Logs history.
+        """
+        return pd.concat([rec.logs() for rec in self.all()])

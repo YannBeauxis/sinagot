@@ -18,7 +18,7 @@ pip install sinagot
 
 ## Concept
 
-*Dataset* are structured around some core concept : **record**, **subset**, **task**, **modality** and **script**. 
+*Dataset* are structured around some core concept : **record**, **task**, **modality** and **script**. 
 A *record*, identified by its unique ID, corresponds to a recording session where experimental *tasks* are performed, 
 generating data of various *modalities*. Raw data of a **record** are processed with **scripts** to generate more useful data.
 
@@ -64,7 +64,7 @@ To instantiate a dataset use the config file path as argument:
 You can list all records ids:
 
 ```python
->>> for id in ds.ids():
+>>> for id in ds.records.ids():
 ...     print(id)
 ...
 REC-200331-A
@@ -74,7 +74,7 @@ REC-200331-B
 Create a `Record` instance. For a specific record:
 
 ```python
->>> rec = ds.get('REC-200331-A')
+>>> rec = ds.records.get('REC-200331-A')
 >>> rec
 <Record instance | id: REC-200331-A, task: None, modality: None>
 ```
@@ -82,7 +82,7 @@ Create a `Record` instance. For a specific record:
 Or the first record found:
 
 ```python
->>> ds.first()
+>>> ds.records.first()
 <Record instance | id: REC-200331-B, task: None, modality: None>
 ```
 
@@ -93,7 +93,7 @@ Or the first record found:
 You can run all scripts for each record of the dataset:
 
 ```python
->>> ds.run()
+>>> ds.steps.run()
 2020-03-31 16:03:58,869 : Begin step run
 ...
 2020-03-31 16:03:58,869 : Step run finished
@@ -102,7 +102,7 @@ You can run all scripts for each record of the dataset:
 Or for a single record:
 
 ```python
->>> rec.run()
+>>> rec.steps.run()
 2020-03-31 16:06:57,313 : Begin step run
 ...
 2020-03-31 16:06:57,314 : Step run finished
@@ -117,10 +117,10 @@ For example to select only the task RS of the dataset:
 
 ```python
 >>> ds.RS
-<Subset instance | task: RS, modality: None>
+<RecordCollection instance | task: RS, modality: None>
 ```
 
-> A dataset subscope is a **subset**.
+> A dataset subscope is a **RecordCollection**.
 
 Or the EEG modality of a record:
 
@@ -133,7 +133,7 @@ You can select a specific couple of task and modality (called **unit**):
 
 ```python
 >>> ds.RS.EEG
-<Subset instance | task: RS, modality: EEG>
+<RecordCollection instance | task: RS, modality: EEG>
 >>> ds.EEG.RS
-<Subset instance | task: RS, modality: EEG>
+<RecordCollection instance | task: RS, modality: EEG>
 ```

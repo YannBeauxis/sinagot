@@ -18,6 +18,6 @@
 [modalities]
     [modalities.EEG]
     [modalities.behavior]
-        subset = 'BehaviorSubset'
+        record_collection = 'BehaviorRecordCollection'
     [modalities.clinical]
 
