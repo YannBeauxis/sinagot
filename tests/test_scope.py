@@ -2,8 +2,8 @@
 from itertools import product
 
 
-def test_tasks(dataset, record):
-    SCOPES = (dataset, record)
+def test_tasks(records, record):
+    SCOPES = (records, record)
     DIMENSIONS = (("tasks", "task", 3), ("modalities", "modality", 3))
     for scope, dimension in product(SCOPES, DIMENSIONS):
         method, label, number = dimension

@@ -37,5 +37,10 @@ def ID():
 
 
 @pytest.fixture
+def records(dataset, ID):
+    return dataset.records
+
+
+@pytest.fixture
 def record(dataset, ID):
-    return dataset.get(ID)
+    return dataset.records.get(ID)

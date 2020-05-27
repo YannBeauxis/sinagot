@@ -26,6 +26,7 @@ class RecordCollection(Scope):
     _record_class = Record
 
     def __init__(self, *args, **kwargs):
+        self._subscope_class = self.__class__
         super().__init__(*args, **kwargs)
         modality = self.modality
         # Check for custom record class
@@ -84,7 +85,7 @@ class RecordCollection(Scope):
                     id="({})".format(config["records"]["id_pattern"]),
                     task="(?:{})".format(self.task),
                 )
-                root_path = os.path.join(self.dataset._data_path, p_in[0])
+                root_path = os.path.join(self.dataset.data_path, p_in[0])
                 for root, dirs, files in os.walk(root_path):
                     if file_match[1]:
                         # Search ID wihtin files

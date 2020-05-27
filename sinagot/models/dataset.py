@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Union, Optional
 import toml
-from sinagot.models import RecordCollection, Record, RunManager
+from sinagot.models import RecordCollection, Record, RunManager, Model
 from sinagot.config import ConfigurationError
 from sinagot.logger import logger_factory
 
@@ -16,11 +16,11 @@ except ImportError:
     dask_enable = False
 
 
-class Dataset(RecordCollection):
+class Dataset(Model):
     """
     Dataset is the main class to handle data.
     It handle all configuration information and objects non specific to a particular data as the logger.
-    It's also a [RecordCollection](record_collection.md) instance used to manipulate a collection of all the records.
+    It can also manage the [RecordCollection](record_collection.md) of all records with `.records` property.
 
     It required a configuration file in `.toml` format.
 
@@ -31,8 +31,6 @@ class Dataset(RecordCollection):
     ds = Dataset(path/to/config.toml)
     ```
     """
-
-    _subscope_class = RecordCollection
 
     def __init__(
         self,
@@ -45,29 +43,38 @@ class Dataset(RecordCollection):
             data_path: path to the folder of the dataset.
         """
 
-        # Load config
+        super().__init__(self)
+
+        self._load_config(config_path)
+        self._get_data_path(data_path)
+        self._init_scripts_path()
+        self._init_run_logger()
+        self._init_run_manager()
+        self._init_records()
+
+    def _load_config(self, config_path):
         self._config_path = Path(config_path)
         if self._config_path.is_dir():
             self._config_path = self._config_path / "dataset.toml"
         self.config = toml.load(self._config_path)
         """Config dictionnary from config file."""
 
-        # Get data_path
-        if data_path is None:
-            data_path = self.config["path"].get("data", self._config_path)
-        self._data_path = self._resolve_path(data_path)
+    @property
+    def scripts_path(self) -> Path:
+        """Path of all the scripts folder"""
+        return self._scripts_path
 
-        # Get _scripts_path from config
+    def _init_scripts_path(self):
         try:
             self._scripts_path = self._resolve_path(self.config["path"]["scripts"])
         except KeyError:
             self._scripts_path = self._config_path.parent
 
-        # Init logger
+    def _init_run_logger(self):
         self.logger = logger_factory(self.config)
         """Logger of the dataset"""
 
-        # Init Run management
+    def _init_run_manager(self):
         try:
             run_mode = self.config["run"]["mode"]
         except KeyError:
@@ -81,12 +88,15 @@ class Dataset(RecordCollection):
 
         self._run_manager = run_manager(self)
 
-        #  Init from RecordCollection
-        super().__init__(self)
+    @property
+    def data_path(self) -> Path:
+        """Path of data folder"""
+        return self._data_path
 
-        # Set subscope from config to RecordCollection and Record class
-        RecordCollection._set_subscopes(self)
-        Record._set_subscopes(self)
+    def _get_data_path(self, data_path):
+        if data_path is None:
+            data_path = self.config["path"].get("data", self._config_path)
+        self._data_path = self._resolve_path(data_path)
 
     def _resolve_path(self, raw_path):
         """Resolve path from config from raw_path and self.config_path if raw path
@@ -103,3 +113,50 @@ class Dataset(RecordCollection):
         if re.match(r"(?:\.{1,2}\/.*|\.$)", str(raw_path)):
             path = Path(self._config_path.parent, raw_path).resolve()
         return path
+
+    @property
+    def records(self) -> RecordCollection:
+        """RecordCollection of all records of the dataset"""
+        return self._records
+
+    @property
+    def steps(self) -> "StepCollection":
+        """StepCollecion for all steps of the dataset"""
+        return self._records.steps
+
+    def _init_records(self):
+
+        RecordCollection._set_subscopes(self)
+        Record._set_subscopes(self)
+
+        self._records = RecordCollection(self)
+        self._DEPRECATED_alias_records()
+        self._alias_subscopes()
+
+    def _alias_subscopes(self):
+        ALIASES = self.records._tasks + self.records._modalities
+        for alias in ALIASES:
+            setattr(self, alias, getattr(self.records, alias))
+
+    def _DEPRECATED_alias_records(self):
+        ALIASES = [
+            "dataset",
+            "ids",
+            "get",
+            "first",
+            "all",
+            "count",
+            "has",
+            "count_detail",
+            "iter_tasks",
+            "tasks",
+            "task",
+            "iter_modalities",
+            "modality",
+            "modalities",
+            "run",
+            "_MODEL_TYPE",
+            "_subscope_class",
+        ]
+        for alias in ALIASES:
+            setattr(self, alias, getattr(self.records, alias))

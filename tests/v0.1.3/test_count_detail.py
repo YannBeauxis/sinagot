@@ -24,7 +24,7 @@ def test_dataset_count_detail(dataset):
         ("RS", "EEG", 2),
         ("RS", "clinical", 0),
     )
-    eval_dataframes(values, dataset.records.count_detail())
+    eval_dataframes(values, dataset.count_detail())
 
 
 def gen_row(task, modality, count):

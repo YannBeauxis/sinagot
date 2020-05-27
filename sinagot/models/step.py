@@ -41,7 +41,7 @@ class Step(Model):
 
         self.script_class = script_class
         self.script = script_class(
-            data_path=self.dataset._data_path,
+            data_path=self.dataset.data_path,
             id_=self.id,
             task=self.task,
             logger_namespace=self.logger.name,

@@ -16,7 +16,7 @@ def test_step_status(dataset, record):
     step.run()
     assert step.status() == StepStatus.DONE
 
-    rec = dataset.records.get("REC-200320-A").HDC.EEG
+    rec = dataset.get("REC-200320-A").HDC.EEG
     step = rec.steps.get("preprocess")
     assert step.status() == StepStatus.PROCESSING
     step.run()

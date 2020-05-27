@@ -64,7 +64,7 @@ To instantiate a dataset use the config file path as argument:
 You can list all records ids:
 
 ```python
->>> for id in ds.ids():
+>>> for id in ds.records.ids():
 ...     print(id)
 ...
 REC-200331-A
@@ -74,7 +74,7 @@ REC-200331-B
 Create a `Record` instance. For a specific record:
 
 ```python
->>> rec = ds.get('REC-200331-A')
+>>> rec = ds.records.get('REC-200331-A')
 >>> rec
 <Record instance | id: REC-200331-A, task: None, modality: None>
 ```
@@ -82,7 +82,7 @@ Create a `Record` instance. For a specific record:
 Or the first record found:
 
 ```python
->>> ds.first()
+>>> ds.records.first()
 <Record instance | id: REC-200331-B, task: None, modality: None>
 ```
 

@@ -82,10 +82,11 @@ class Scope(Model):
         _subscope_class = cls._search_custom_subscope_in_config(
             subscope, value, dataset
         )
+        subscope_access = property(
+            cls._property_factory(_subscope_class, subscope, value)
+        )
         setattr(
-            cls,
-            value,
-            property(cls._property_factory(_subscope_class, subscope, value)),
+            cls, value, subscope_access,
         )
         return value
 

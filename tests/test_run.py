@@ -1,5 +1,4 @@
-import time
-import toml
+
 import pytest
 from sinagot import Dataset
 from sinagot.utils import StepStatus
@@ -39,7 +38,7 @@ def test_dask(dataset):
 
     assert dataset.config["run"]["mode"] == "dask"
     assert isinstance(dataset._run_manager, DaskRunManager)
-    rec = dataset.get("REC-200320-A").HDC.EEG
+    rec = dataset.records.get("REC-200320-A").HDC.EEG
     step = rec.steps.get("preprocess")
     assert step.status() == StepStatus.PROCESSING
     # TODO: Handle asyncio

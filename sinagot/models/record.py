@@ -67,7 +67,7 @@ class Record(Scope):
             Logs history.
         """
 
-        log_path = record_log_file_path(self.dataset._data_path, self.id)
+        log_path = record_log_file_path(self.dataset.data_path, self.id)
         if log_path.exists():
             json = "[{}]".format(",".join(log_path.read_text().split("\n")[:-1]))
             df = pd.read_json(StringIO(json), orient="records")

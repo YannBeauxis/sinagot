@@ -1,35 +1,31 @@
 import re
 import pytest
-from sinagot.models import Record, Subset
+from sinagot.models import Record
 
 
-def test_set_subset(dataset, shared_datadir):
-    ds = dataset
-    assert ds.data_path == shared_datadir / "sonetaa" / "dataset"
+def test_set_record_collection(dataset, shared_datadir):
+    assert dataset.data_path == shared_datadir / "sonetaa" / "dataset"
     for task in ("RS", "MMN", "HDC"):
-        task_subset = getattr(ds, task)
-        assert isinstance(task_subset, ds._subscope_class)
+        task_record_collection = getattr(dataset, task)
+        assert isinstance(task_record_collection, dataset._subscope_class)
         for modality in ("EEG", "clinical"):
-            modality_subset = getattr(task_subset, modality)
-            assert isinstance(modality_subset, ds._subscope_class)
+            modality_record_collection = getattr(task_record_collection, modality)
+            assert isinstance(modality_record_collection, dataset._subscope_class)
 
-    #  Test modality exist only for the right tasks
-    hdc_behavior = ds.HDC.behavior
-    assert isinstance(hdc_behavior, ds._subscope_class)
+
+def test_modality_exists_only_for_the_right_tasks(dataset):
+    hdc_behavior = dataset.HDC.behavior
+    assert isinstance(hdc_behavior, dataset._subscope_class)
     with pytest.raises(AttributeError):
-        assert ds.EEG.behavior is None
+        assert dataset.EEG.behavior is None
     with pytest.raises(AttributeError):
-        assert ds.behavior.EEG is None
+        assert dataset.behavior.EEG is None
 
 
-def test_custom_subset(dataset):
-    assert isinstance(dataset.EEG, Subset)
+def test_custom_record_collection(dataset):
+    assert dataset.EEG.__class__.__name__ == "RecordCollection"
     assert dataset.behavior.__class__.__name__ == "BehaviorSubset"
     assert dataset.behavior.test() == "Test !!"
-
-
-def test_run(dataset):
-    dataset.run()
 
 
 def test_ids(dataset, IDS):

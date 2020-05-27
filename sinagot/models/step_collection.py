@@ -98,7 +98,7 @@ class StepCollection(Model):
 
         dataset = self.dataset
         return dataset._run_manager.run(
-            dataset, step_label=step_label, force=force, debug=debug
+            self.model, step_label=step_label, force=force, debug=debug
         )
 
     def status(self) -> pd.DataFrame:
@@ -112,12 +112,7 @@ class StepCollection(Model):
         elif self.model.count() == 0:
             return pd.DataFrame([])
         else:
-            return pd.concat(
-                [
-                    rec.steps.status()
-                    for rec in self.model.all()
-                ]
-            )
+            return pd.concat([rec.steps.status() for rec in self.model.all()])
 
     def _record_status(self):
         if self.count():
