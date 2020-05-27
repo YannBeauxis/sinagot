@@ -49,7 +49,7 @@ class RecordCollection(Scope):
             for record_id in self._ids_unit():
                 yield record_id
         else:
-            units = self.units()
+            units = self.iter_units()
             ids = []
             for unit in units:
                 for record_id in unit.ids():
@@ -167,14 +167,14 @@ class RecordCollection(Scope):
         return sum(1 for rec in self.ids())
 
     # TODO: To test
-
     def count_detail(self, *args, **kwargs) -> pd.DataFrame:
         """
         Returns:
             Number of records present in each tasks and modalities.
 
         Note:
-            Refer to [`Record.count_detail()`](record.md#sinagot.models.record.Record.count_detail) for more information
+            Refer to [`Record.count_detail()`](record.md#sinagot.models.record.Record.count_detail) 
+            for more information
         """
 
         count = None
@@ -199,3 +199,11 @@ class RecordCollection(Scope):
                 )
 
         return count.groupby(list(columns[:-1])).sum().reset_index()
+
+    # TODO: To test
+    def logs(self) -> pd.DataFrame:
+        """
+        Returns:
+            Logs history.
+        """
+        return pd.concat([rec.logs() for rec in self.all()])

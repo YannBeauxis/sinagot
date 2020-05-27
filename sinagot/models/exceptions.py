@@ -1,4 +1,4 @@
-class NonUnitError(Exception):
+class NotUnitError(Exception):
     """Rise when a model is not a unit"""
 
 

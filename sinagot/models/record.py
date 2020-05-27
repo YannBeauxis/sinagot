@@ -6,11 +6,12 @@ from typing import Optional
 from io import StringIO
 import pandas as pd
 from sinagot.models import Scope
-from sinagot.utils import record_log_file_path
 from sinagot.utils import (
+    record_log_file_path,
     LOG_STEP_LABEL,
     LOG_STEP_STATUS,
 )
+from sinagot.models.exceptions import NotUnitError
 
 
 class Record(Scope):
@@ -60,16 +61,6 @@ class Record(Scope):
     def subset(self) -> "Subset":
         return self.record_collection
 
-    def exists(self) -> bool:
-        """
-        Check if the record exists in the record_collection with the same task and modality values.
-
-        Returns:
-            True if the record exists
-        """
-
-        return self.record_collection.has(self.id)
-
     def logs(self) -> pd.DataFrame:
         """
         Returns:
@@ -89,20 +80,6 @@ class Record(Scope):
             return pd.DataFrame()
 
     # TODO: Test
-
-    def _count_detail(self):
-
-        if self.is_unit:
-            return pd.Series(
-                {
-                    "task": self.task,
-                    "modality": self.modality,
-                    "count": sum([self.exists()]),
-                }
-            )
-        else:
-            return pd.DataFrame([unit._count_detail() for unit in self.units()])
-
     def count_detail(
         self, groupby: Optional[str] = None, group_mode: Optional[str] = "all"
     ) -> pd.DataFrame:
@@ -150,6 +127,27 @@ class Record(Scope):
             return count.reset_index().reindex(groupby + ["count"], axis=1)
         return count
 
+    def _count_detail(self):
+
+        if self.is_unit:
+            return pd.Series(
+                {
+                    "task": self.task,
+                    "modality": self.modality,
+                    "count": sum([self._unit_has_raw_data()]),
+                }
+            )
+        else:
+            return pd.DataFrame([unit._count_detail() for unit in self.iter_units()])
+
+    def _unit_has_raw_data(self):
+        if not self.is_unit:
+            raise NotUnitError
+        first_step = self.steps.first()
+        if first_step:
+            return first_step.script.data_exist.input
+        return False
+
     def _count_backbone(self):
         """Used for count_detail() method."""
 
@@ -160,6 +158,16 @@ class Record(Scope):
                 for modality in self.config["modalities"]
             ]
         )
+
+    def status_json(self) -> str:
+        """
+        Returns:
+            Status in JSON format for web API.
+        """
+
+        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
+
+        return json.dumps(self._structure_status(columns))
 
     def _structure_status(self, columns):
 
@@ -180,13 +188,3 @@ class Record(Scope):
             return sd
 
         return get_status_dict(df)
-
-    def status_json(self) -> str:
-        """
-        Returns:
-            Status in JSON format for web API.
-        """
-
-        columns = ("step_index", LOG_STEP_LABEL, LOG_STEP_STATUS)
-
-        return json.dumps(self._structure_status(columns))

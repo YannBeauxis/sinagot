@@ -1,21 +1,20 @@
 # coding=utf-8
 
 from typing import Optional, Generator
-import pandas as pd
 from sinagot.models import Model, StepCollection
 
 
 class Scope(Model):
-    # """
-    # A Scope instance can :
+    """
+    A Scope instance can :
 
-    # - Handle task and modality subscopes.
+    - Handle task and modality subscopes.
 
-    # - Handle StepCollection with `.steps` attribute.
+    - Handle StepCollection with `.steps` attribute.
 
-    # Note:
-    #     Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
-    # """
+    Note:
+        Scope is base class for [RecordCollection](record_collection.md) and [Record](record.md).
+    """
 
     _REPR_ATTRIBUTES = ["task", "modality"]
     _MODEL_TYPE = None
@@ -43,16 +42,16 @@ class Scope(Model):
             "## init scope for %s. _subscope_class: %s", self, self._subscope_class
         )
         if task is not None:
-            self.task: str = task
+            self.task: Optional[str] = task
             """Task of the scope. If `None`, the scope represents all available tasks."""
         if modality is not None:
-            self.modality: str = modality
+            self.modality: Optional[str] = modality
             """Modality of the scope. If `None`, the scope represents all available modalities."""
         if self._subscope_class is None:
             self._subscope_class = self.__class__
         super().__init__(dataset)
 
-        self.steps: "StepCollection" = StepCollection(self)
+        self.steps: StepCollection = StepCollection(self)
         """Collection of steps."""
 
     @classmethod
@@ -153,7 +152,7 @@ class Scope(Model):
 
         return not (self.task is None or self.modality is None)
 
-    def units(self) -> Generator["Scope", None, None]:
+    def iter_units(self) -> Generator["Scope", None, None]:
         """
         Generate each 'unit' subscopes of the current scope,
         i.e. subscope with specific task and modality
@@ -174,6 +173,13 @@ class Scope(Model):
             for modality in modalities:
                 yield modality
 
+    #  TODO: Deprecated warning
+    def units(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_units()` instead"""
+        return self.iter_units()
+
     def iter_tasks(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its task.
@@ -189,7 +195,9 @@ class Scope(Model):
 
     #  TODO: Deprecated warning
     def tasks(self):
-        """DEPRECATED: Use `iter_tasks()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_tasks()` instead"""
         return self.iter_tasks()
 
     def iter_modalities(self) -> Generator["Scope", None, None]:
@@ -206,28 +214,24 @@ class Scope(Model):
 
     #  TODO: Deprecated warning
     def modalities(self):
-        """DEPRECATED: Use `iter_modalities()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_modalities()` instead"""
         return self.iter_modalities()
 
     # TODO: deprecated warning
     def run(self, *args, **kwargs):
-        """DEPRECATED: Use `steps.run()` instead"""
+        """
+        !!! warning 
+            **DEPRECATED** Use `steps.run()` instead"""
 
         return self.steps.run(*args, **kwargs)
 
-    def status(self) -> pd.DataFrame:
+    # TODO: deprecated warning
+    def status(self):
         """
-        Returns:
-            Status for each step.
+        !!! warning 
+            **DEPRECATED** Use `steps.status()` instead
         """
 
-        try:
-            return pd.concat(
-                [
-                    unit.steps.status()
-                    for unit in self.units()
-                    if unit.steps.status() is not None
-                ]
-            )
-        except ValueError:
-            return pd.DataFrame()
+        return self.steps.status()
