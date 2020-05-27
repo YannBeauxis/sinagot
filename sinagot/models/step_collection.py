@@ -26,7 +26,7 @@ class StepCollection(Model):
         """find a step by script name.
 
         Params:
-            script: script label to find.
+            script_name: script label to find.
 
         Returns:
             `Step` if model has modality, `dict` with `Step` or `None` as value for each modality either.

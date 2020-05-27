@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import inspect
+from typing import Optional
 from pathlib import Path
 import pandas as pd
 from sinagot.models import Model
@@ -74,7 +75,7 @@ class Step(Model):
         if isinstance(path, dict):
             return all([p.exists() for p in path.values()])
 
-    def run(self, force=False):
+    def run(self, force: Optional[bool] = False):
         """
         Run the step script.
         

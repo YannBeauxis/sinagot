@@ -43,24 +43,6 @@ class Record(Scope):
         self.id = record_id
         super().__init__(dataset, *args, **kwargs)
 
-    @property
-    def record_collection(self) -> "RecordCollection":
-        """
-        RecordCollection instance with same scope than the record i.e. the same task and modality value.
-        """
-
-        record_collection = self.dataset
-        if self.task is not None:
-            record_collection = getattr(record_collection, self.task)
-        if self.modality is not None:
-            record_collection = getattr(record_collection, self.modality)
-        return record_collection
-
-    #  TODO: Deprecated warning
-    @property
-    def subset(self) -> "Subset":
-        return self.record_collection
-
     def logs(self) -> pd.DataFrame:
         """
         Returns:
