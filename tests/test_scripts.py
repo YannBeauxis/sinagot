@@ -9,3 +9,14 @@ def test_path(dataset, ID):
     assert script.path.output == Path(
         dataset.data_path, "PROCESSED", ID, "HDC", "behavior-scores.csv"
     )
+
+
+def test_create_output_dir(dataset):
+    REC_ID = "REC-200606-A"
+    record = dataset.RS.EEG.get(REC_ID)
+    step = record.steps.get("alpha")
+    script = step.script
+    assert not script.data_exist.input
+    script.path.input.mkdir(parents=True)
+    step.run()
+    assert script.path.output.exists()

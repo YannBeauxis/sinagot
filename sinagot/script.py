@@ -26,6 +26,7 @@ class ScriptTemplate:
             task (str): Taks label
     """
 
+    _PATH_LABELS = ["input", "output"]
     PATH_IN = ("FOLDER_IN", "{id}-{task}.in")
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
 
@@ -72,12 +73,9 @@ class ScriptTemplate:
             LOG_STEP_STATUS: status,
         }
 
-    def _log_status(self, message, status):
-        self._logger.info(message, extra=self._log_extra(status))
-
     def _set_path(self):
 
-        ScriptPath = namedtuple("IOPath", ["input", "output"])
+        ScriptPath = namedtuple("IOPath", self._PATH_LABELS)
         self.path = ScriptPath(
             input=self._get_path(self.PATH_IN), output=self._get_path(self.PATH_OUT),
         )
@@ -97,18 +95,6 @@ class ScriptTemplate:
             rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path_unit
         )
 
-    @property
-    def data_exist(self):
-        DataStatus = namedtuple("IOPath", ["input", "output"])
-
-        def path_exist(path):
-            if isinstance(path, Path):
-                return path.exists()
-            elif isinstance(path, dict):
-                return all([path_exist(p) for p in path.values()])
-
-        return DataStatus(*(path_exist(path) for path in self.path))
-
     def _run(self, force: bool = False, debug: bool = False):
         """Required run function. Called by step model :code:`run()` method."""
 
@@ -123,6 +109,7 @@ class ScriptTemplate:
             self.status = StepStatus.PROCESSING
             self._log_status("Processing run", StepStatus.PROCESSING)
             try:
+                self._mkdir_output()
                 self.run()
                 self._log_status("Run finished", StepStatus.DONE)
             except Exception as ex:
@@ -134,8 +121,32 @@ class ScriptTemplate:
 
         return True
 
-    def _run_force(self):
-        self._run(force=True)
+    def _log_status(self, message, status):
+        self._logger.info(message, extra=self._log_extra(status))
 
     def run(self):
         self.logger.info("Running ...")
+
+    @property
+    def data_exist(self):
+        DataStatus = namedtuple("IOPath", self._PATH_LABELS)
+        return DataStatus(*(self._path_exist(target) for target in self._PATH_LABELS))
+
+    def _path_exist(self, target):
+        for path in self._iter_paths(target):
+            if not path.exists():
+                return False
+        return True
+
+    def _mkdir_output(self):
+        for path in self._iter_paths("output"):
+            if not path.exists():
+                path.mkdir(parents=True)
+
+    def _iter_paths(self, target):
+        if target not in ("input", "output"):
+            raise AttributeError("target not in ('input', 'output')")
+        paths = getattr(self.path, target)
+        if isinstance(paths, Path):
+            return (paths,)
+        return paths.values()
