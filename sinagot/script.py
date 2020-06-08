@@ -140,8 +140,8 @@ class ScriptTemplate:
 
     def _mkdir_output(self):
         for path in self._iter_paths("output"):
-            if not path.exists():
-                path.mkdir(parents=True)
+            if not path.parent.exists():
+                path.parent.mkdir(parents=True)
 
     def _iter_paths(self, target):
         if target not in ("input", "output"):

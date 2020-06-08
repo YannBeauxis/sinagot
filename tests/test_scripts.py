@@ -18,5 +18,8 @@ def test_create_output_dir(dataset):
     script = step.script
     assert not script.data_exist.input
     script.path.input.mkdir(parents=True)
+    assert not script.path.output.parent.exists()
     step.run()
-    assert script.path.output.exists()
+    assert script.path.output.parent.exists()
+    for path in script._iter_paths("output"):
+        assert not path.is_dir()
