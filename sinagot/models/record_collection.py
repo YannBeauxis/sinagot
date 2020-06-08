@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+from pathlib import Path
 import re
 from typing import Generator
 import pandas as pd
@@ -38,8 +39,16 @@ class RecordCollection(Scope):
                 )
             except KeyError:
                 pass
+        self._ids = []
 
-    def ids(self) -> Generator[str, None, None]:
+    #  TODO: Deprecated warning
+    def ids(self):
+        """
+        !!! warning 
+            **DEPRECATED** Use `iter_ids()` instead"""
+        return self.iter_ids()
+
+    def iter_ids(self) -> Generator[str, None, None]:
         """Generator all record ids within the record_collection.
         
         Returns:
@@ -51,16 +60,23 @@ class RecordCollection(Scope):
                 yield record_id
         else:
             units = self.iter_units()
-            ids = []
+            self._ids = []
             for unit in units:
-                for record_id in unit.ids():
-                    if not record_id in ids:
-                        ids.append(record_id)
+                for record_id in unit.iter_ids():
+                    if self._is_new_id(record_id):
                         yield record_id
+
+    def _is_new_id(self, record_id):
+        ids = self._ids
+        if record_id in ids:
+            return False
+        ids.append(record_id)
+        self._ids = ids
+        return True
 
     def _ids_unit(self):
         """Return the list of all records ids i.e. subfolder names"""
-        ids = []
+        self._ids = []
         config = self.config
         try:
             file_match = config["modalities"][self.modality]["file_match"]
@@ -70,37 +86,38 @@ class RecordCollection(Scope):
         first_script = self.steps.first()
 
         if first_script:
-            path_in = first_script.script.PATH_IN
-            if isinstance(path_in, dict):
-                path_in = path_in.values()
+            path_raw = first_script.script.PATH_IN
+            if isinstance(path_raw, dict):
+                path_list = path_raw.values()
             else:
-                path_in = [path_in]
-            for p_in in path_in:
-                pattern = os.path.join(*p_in)
-                path_ = p_in
-                if not file_match[0]:
-                    path_ = path_[:-1]
-                pattern = os.path.join(*path_)
-                pattern = pattern.format(
-                    id="({})".format(config["records"]["id_pattern"]),
-                    task="(?:{})".format(self.task),
-                )
-                root_path = os.path.join(self.dataset.data_path, p_in[0])
-                for root, dirs, files in os.walk(root_path):
-                    if file_match[1]:
-                        # Search ID wihtin files
-                        item_set = files
-                    else:
-                        # Search ID wihtin dirs
-                        item_set = dirs
-                    for item in item_set:
-                        path = os.path.join(root, item)
-                        m = re.search(pattern, path)
-                        if m and (len(m.groups()) > 0):
-                            record_id = m.group(1)
-                            if record_id not in ids:
-                                ids.append(record_id)
-                                yield record_id
+                path_list = [path_raw]
+
+            for path_tuple in path_list:
+                root_path = Path(self.dataset.data_path)
+                raw_pattern = Path(*path_tuple)
+                glob_pattern = str(self._glob_pattern(raw_pattern))
+                re_pattern = re.compile(str(root_path / self._re_pattern(raw_pattern)))
+
+                for path in root_path.glob(glob_pattern):
+                    record_id = self._evaluate_path(re_pattern, path)
+                    if record_id:
+                        yield record_id
+
+    def _evaluate_path(self, re_pattern, path):
+        m = re_pattern.search(str(path))
+        if m and (len(m.groups()) > 0):
+            record_id = m.group(1)
+            if self._is_new_id(record_id):
+                return record_id
+
+    def _glob_pattern(self, raw_pattern):
+        return str(raw_pattern).format(id="*", task="*",)
+
+    def _re_pattern(self, raw_pattern):
+        return str(raw_pattern).format(
+            id="({})".format(self.config["records"]["id_pattern"]),
+            task="(?:{})".format(self.task),
+        )
 
     def all(self) -> Generator["Record", None, None]:
         """Generate all records instances of the record_collection.
@@ -109,7 +126,7 @@ class RecordCollection(Scope):
             sinagot.models.Record: Record instance
         """
 
-        for record_id in self.ids():
+        for record_id in self.iter_ids():
             yield self.get(record_id)
 
     def first(self) -> "Record":
@@ -120,7 +137,7 @@ class RecordCollection(Scope):
             Record instance
         """
 
-        for record_id in self.ids():
+        for record_id in self.iter_ids():
             return self.get(record_id)
 
     def get(self, record_id: str) -> "Record":
@@ -152,7 +169,7 @@ class RecordCollection(Scope):
             True if record exists.
         """
 
-        for id_ in self.ids():
+        for id_ in self.iter_ids():
             if id_ == record_id:
                 return True
         return False
@@ -165,7 +182,7 @@ class RecordCollection(Scope):
             Number of records.
         """
 
-        return sum(1 for rec in self.ids())
+        return sum(1 for rec in self.iter_ids())
 
     # TODO: To test
     def count_detail(self, *args, **kwargs) -> pd.DataFrame:

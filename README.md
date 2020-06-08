@@ -64,7 +64,7 @@ To instantiate a dataset use the config file path as argument:
 You can list all records ids:
 
 ```python
->>> for id in ds.records.ids():
+>>> for id in ds.records.iter_ids():
 ...     print(id)
 ...
 REC-200331-A
