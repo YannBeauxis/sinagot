@@ -1,6 +1,6 @@
 # coding=utf-8
 
-import os
+from typing import Optional
 from pathlib import Path
 import re
 from typing import Generator
@@ -56,7 +56,7 @@ class RecordCollection(Scope):
         """
         # TODO: use dataset cache for ids
         if self.is_unit:
-            for record_id in self._ids_unit():
+            for record_id in self._iter_ids_unit():
                 yield record_id
         else:
             units = self.iter_units()
@@ -74,34 +74,28 @@ class RecordCollection(Scope):
         self._ids = ids
         return True
 
-    def _ids_unit(self):
+    def _iter_ids_unit(self):
         """Return the list of all records ids i.e. subfolder names"""
         self._ids = []
-        config = self.config
-        try:
-            file_match = config["modalities"][self.modality]["file_match"]
-        except KeyError:
-            file_match = config["records"]["file_match"]
 
         first_script = self.steps.first()
 
         if first_script:
             path_raw = first_script.script.PATH_IN
             if isinstance(path_raw, dict):
-                path_list = path_raw.values()
+                path_tuple = path_raw.values()[0]
             else:
-                path_list = [path_raw]
+                path_tuple = path_raw
 
-            for path_tuple in path_list:
-                root_path = Path(self.dataset.data_path)
-                raw_pattern = Path(*path_tuple)
-                glob_pattern = str(self._glob_pattern(raw_pattern))
-                re_pattern = re.compile(str(root_path / self._re_pattern(raw_pattern)))
+            root_path = Path(self.dataset.data_path)
+            raw_pattern = Path(*path_tuple)
+            glob_pattern = str(self._glob_pattern(raw_pattern))
+            re_pattern = re.compile(str(root_path / self._re_pattern(raw_pattern)))
 
-                for path in root_path.glob(glob_pattern):
-                    record_id = self._evaluate_path(re_pattern, path)
-                    if record_id:
-                        yield record_id
+            for path in root_path.glob(glob_pattern):
+                record_id = self._evaluate_path(re_pattern, path)
+                if record_id:
+                    yield record_id
 
     def _evaluate_path(self, re_pattern, path):
         m = re_pattern.search(str(path))
@@ -184,39 +178,19 @@ class RecordCollection(Scope):
 
         return sum(1 for rec in self.iter_ids())
 
-    # TODO: To test
-    def count_detail(self, *args, **kwargs) -> pd.DataFrame:
-        """
-        Returns:
-            Number of records present in each tasks and modalities.
+    def _count_detail_unit(self):
 
-        Note:
-            Refer to [`Record.count_detail()`](record.md#sinagot.models.record.Record.count_detail) 
-            for more information
-        """
-
-        count = None
-
-        self.logger.debug("Begin count_detail")
-        for rec in self.all():
-            self.logger.debug("Begin count_detail for record {}".format(rec.id))
-            try:
-                count_ = rec.count_detail(*args, **kwargs)
-                if count is None:
-                    count = count_
-                    columns = count.columns
-                else:
-                    count = count.append(count_)
-                    if "count_x" in count.columns:
-                        count = count.eval("count = count_x + count_y").reindex(
-                            columns, axis=1
-                        )
-            except:
-                self.logger.warning(
-                    "Error in count_detail for record {}".format(rec.id)
-                )
-
-        return count.groupby(list(columns[:-1])).sum().reset_index()
+        return pd.DataFrame(
+            [
+                {
+                    "record_id": record_id,
+                    "task": self.task,
+                    "modality": self.modality,
+                    "count": 1,
+                }
+                for record_id in self.iter_ids()
+            ]
+        )
 
     # TODO: To test
     def logs(self) -> pd.DataFrame:

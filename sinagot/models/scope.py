@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from typing import Optional, Generator
+import pandas as pd
 from sinagot.models import Model, StepCollection
 
 
@@ -236,3 +237,54 @@ class Scope(Model):
         """
 
         return self.steps.status()
+
+    # TODO: To test
+    def count_detail(
+        self, groupby: Optional[str] = None, group_mode: Optional[str] = "all",
+    ) -> pd.DataFrame:
+        """
+        Args:
+            groupby: If not `None`, columns to perform a groupby.
+            group_mode: method to count the groupby. Possible values:
+
+                - 'all': Sum if exists in each scope of the aggregation.
+
+                - 'any': Sum if exists in at least one scope of the aggregation.
+
+                - 'mean': Mean each scope of the aggregation.
+
+        Returns:
+            Detail count if record exists i.e. has raw data.
+
+        Raises:
+            AttributeError: if group_mode not in ('all', 'any', 'mean').
+        """
+
+        if isinstance(groupby, str):
+            groupby = [groupby]
+
+        if group_mode not in ("all", "any", "mean"):
+            raise AttributeError("aggregate_mode arg not valid")
+
+        count = self._count_detail()
+        count = count.groupby(["task", "modality"]).sum()
+        if groupby:
+            count = count.groupby(groupby)
+            if group_mode == "all":
+                count = count.min()
+            if group_mode == "any":
+                count = count.max()
+            if group_mode == "mean":
+                count = count.mean()
+            return count.reset_index().reindex(groupby + ["count"], axis=1)
+        return count
+
+    def _count_detail(self):
+
+        if self.is_unit:
+            return self._count_detail_unit()
+        else:
+            return pd.concat([unit._count_detail() for unit in self.iter_units()])
+
+    def _count_detail_unit(self):
+        return pd.DataFrame()
