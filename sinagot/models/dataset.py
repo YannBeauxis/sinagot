@@ -36,6 +36,7 @@ class Dataset(Model):
         self,
         config_path: Union[str, Path],
         data_path: Optional[Union[str, Path]] = None,
+        scripts_path: Optional[Union[str, Path]] = None,
     ):
         """
         Arguments:
@@ -46,8 +47,8 @@ class Dataset(Model):
         super().__init__(self)
 
         self._load_config(config_path)
-        self._get_data_path(data_path)
-        self._init_scripts_path()
+        self._set_data_path(data_path)
+        self._set_scripts_path(scripts_path)
         self._init_run_logger()
         self._init_run_manager()
         self._init_records()
@@ -59,16 +60,27 @@ class Dataset(Model):
         self.config = toml.load(self._config_path)
         """Config dictionnary from config file."""
 
+    def _set_data_path(self, data_path):
+        if data_path is None:
+            data_path = self.config["path"].get("data", self._config_path)
+        self._data_path = self._resolve_path(data_path)
+
+    @property
+    def data_path(self) -> Path:
+        """Path of data folder"""
+        return self._data_path
+
+    def _set_scripts_path(self, scripts_path):
+        scripts_path = scripts_path or self.config.get("path", {}).get("scripts")
+        if scripts_path:
+            self._scripts_path = self._resolve_path(scripts_path)
+        else:
+            self._scripts_path = self._config_path.parent
+
     @property
     def scripts_path(self) -> Path:
         """Path of all the scripts folder"""
         return self._scripts_path
-
-    def _init_scripts_path(self):
-        try:
-            self._scripts_path = self._resolve_path(self.config["path"]["scripts"])
-        except KeyError:
-            self._scripts_path = self._config_path.parent
 
     def _init_run_logger(self):
         self.logger = logger_factory(self.config)
@@ -88,15 +100,6 @@ class Dataset(Model):
 
         self._run_manager = run_manager(self)
 
-    @property
-    def data_path(self) -> Path:
-        """Path of data folder"""
-        return self._data_path
-
-    def _get_data_path(self, data_path):
-        if data_path is None:
-            data_path = self.config["path"].get("data", self._config_path)
-        self._data_path = self._resolve_path(data_path)
 
     def _resolve_path(self, raw_path):
         """Resolve path from config from raw_path and self.config_path if raw path
