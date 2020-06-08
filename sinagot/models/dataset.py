@@ -9,7 +9,7 @@ from sinagot.config import ConfigurationError
 from sinagot.logger import logger_factory
 
 try:
-    from sinagot.plugins import DaskRunManager
+    from sinagot.plugins.dask import DaskRunManager
 
     dask_enable = True
 except ImportError:
@@ -99,7 +99,6 @@ class Dataset(Model):
             run_manager = RunManager
 
         self._run_manager = run_manager(self)
-
 
     def _resolve_path(self, raw_path):
         """Resolve path from config from raw_path and self.config_path if raw path

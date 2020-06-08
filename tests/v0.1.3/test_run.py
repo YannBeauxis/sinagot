@@ -3,7 +3,7 @@ import toml
 import pytest
 from sinagot import Dataset
 from sinagot.utils import StepStatus
-from sinagot.plugins import DaskRunManager
+from sinagot.plugins.dask import DaskRunManager
 
 
 @pytest.mark.parametrize(
