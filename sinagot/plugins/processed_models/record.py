@@ -24,20 +24,16 @@ class ProcessedRecord(Record):
         }
         return GETTERS[getter_label]
 
-    def get_processed_data(self, with_clinical=None, **kwargs):
-        data = self._get_data(**kwargs)
-        return data
-
-    def _get_data(
-        self, data_key,
-    ):
+    def get_processed_data(self, data_key):
         params = self.dataset.config[self._CONFIG_PROCESSED_LABEL][data_key]
-        data = self._get_raw_data(params)
+        path = self._get_raw_path(params)
+        if not path.exists():
+            return pd.DataFrame()
         getter_label = params.get(self._DATA_GETTER_LABEL, "single_data")
         getter = self._data_getters(getter_label)
-        return getter(self, data, params)
+        return getter(self, path, params)
 
-    def _get_raw_data(self, params):
+    def _get_raw_path(self, params):
         record = Record(
             self.dataset,
             record_id=self.id,
