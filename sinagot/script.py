@@ -103,7 +103,7 @@ class ScriptTemplate:
         self._log_status("Init run", StepStatus.INIT)
         if not self.data_exist.input:
             self._log_status("Input data not available", StepStatus.DATA_NOT_AVIABLE)
-        elif (not force) and self.data_exist.output:
+        elif not self._has_to_run(force):
             self._log_status("Run already processed", StepStatus.DONE)
         else:
             self.status = StepStatus.PROCESSING
@@ -150,3 +150,11 @@ class ScriptTemplate:
         if isinstance(paths, Path):
             return (paths,)
         return paths.values()
+
+    def _has_to_run(self, force):
+        if force:
+            return True
+        for path in self._iter_paths("output"):
+            if (not path.exists()) or path.read_text() == "":
+                return True
+        return False
