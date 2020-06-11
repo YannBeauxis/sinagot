@@ -154,6 +154,25 @@ class Scope(Model):
 
         return not (self.task is None or self.modality is None)
 
+    def get_subscope(
+        self, task: Optional[str] = None, modality: Optional[str] = None
+    ) -> "Scope":
+        """Get subscope for given task and/or modality
+
+        Args:
+            task : the task target
+            modality : the modality target
+
+        Returns:
+            [type]: [description]
+        """
+        result = self
+        if task:
+            result = getattr(result, task)
+        if modality:
+            result = getattr(result, modality)
+        return result
+
     def iter_units(self) -> Generator["Scope", None, None]:
         """
         Generate each 'unit' subscopes of the current scope,
