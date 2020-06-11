@@ -12,6 +12,7 @@ def test_scripts_name(dataset):
         "behavior": ["scores", "scores_norm"],
         "EEG": ["preprocess", "alpha"],
         "clinical": [],
+        "processed": [],
     }
 
 
@@ -34,6 +35,7 @@ def test_get(dataset):
         "behavior": "scores",
         "EEG": None,
         "clinical": None,
+        "processed": None,
     }
 
 
@@ -44,6 +46,7 @@ def test_first(dataset):
         "behavior": "scores",
         "EEG": "preprocess",
         "clinical": None,
+        "processed": None,
     }
 
 
@@ -54,6 +57,7 @@ def test_count(dataset):
         "behavior": 2,
         "EEG": 2,
         "clinical": 0,
+        "processed": 0,
     }
     assert dataset.RS.steps.count() == {
         "EEG": 2,

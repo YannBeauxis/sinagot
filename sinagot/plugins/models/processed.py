@@ -1,7 +1,7 @@
 # coding=utf-8
 
 import pandas as pd
-from sinagot.models import Record
+from sinagot.models import Record, RecordCollection
 
 
 class ProcessedRecord(Record):
@@ -31,7 +31,7 @@ class ProcessedRecord(Record):
             return pd.DataFrame()
         getter_label = params.get(self._DATA_GETTER_LABEL, "single_data")
         getter = self._data_getters(getter_label)
-        return getter(self, path, params)
+        return getter(self, path, params).set_index("record_id")
 
     def _get_raw_path(self, params):
         record = Record(
@@ -77,3 +77,13 @@ class ProcessedRecord(Record):
     def _add_record_id_to_dataframe(self, data):
         data.insert(0, "record_id", self.id)
         return data
+
+
+class ProcessedRecordCollection(RecordCollection):
+
+    _record_class = ProcessedRecord
+
+    def get_processed_data(self, **kwargs):
+        return pd.concat([rec.get_processed_data(**kwargs) for rec in self.all()])
+
+MODELS = {"record": ProcessedRecord, "record_collection": ProcessedRecordCollection}

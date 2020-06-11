@@ -33,6 +33,10 @@
         models.record = 'BehaviorRecord'
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]
+        models.plugin = "clinical"
+        dataframe_path=['CLINICAL', 'data.csv']
+    [modalities.processed]
+        models.plugin = "processed"
 
 [tasks]
     [tasks.RS]

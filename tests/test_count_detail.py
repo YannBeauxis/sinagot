@@ -4,12 +4,12 @@ import pandas as pd
 def test_record_count_detail(record):
     values = (
         ("RS", "EEG", 1),
-        ("RS", "clinical", 0),
+        ("RS", "clinical", 1),
         ("MMN", "EEG", 1),
-        ("MMN", "clinical", 0),
+        ("MMN", "clinical", 1),
         ("HDC", "EEG", 1),
         ("HDC", "behavior", 0),
-        ("HDC", "clinical", 0),
+        ("HDC", "clinical", 1),
     )
     eval_dataframes(values, record.count_detail())
 
@@ -18,8 +18,11 @@ def test_dataset_count_detail(dataset):
     values = (
         ("HDC", "EEG", 2),
         ("HDC", "behavior", 1),
+        ("HDC", "clinical", 2),
         ("MMN", "EEG", 2),
+        ("MMN", "clinical", 2),
         ("RS", "EEG", 2),
+        ("RS", "clinical", 2),
     )
     eval_dataframes(values, dataset.records.count_detail())
 

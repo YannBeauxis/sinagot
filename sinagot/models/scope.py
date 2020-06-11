@@ -1,5 +1,6 @@
 # coding=utf-8
 
+from importlib import import_module
 from typing import Optional, Generator
 import pandas as pd
 from sinagot.models import Model, StepCollection
@@ -103,6 +104,9 @@ class Scope(Model):
             )
             if custom_class:
                 return dataset._get_module(custom_class, value, "models", model_type)
+            plugin_model = sub_config.get("plugin")
+            if plugin_model:
+                return cls._get_plugin_modules(plugin_model)[model_type]
         return cls
 
     #  TODO: Deprecated warning

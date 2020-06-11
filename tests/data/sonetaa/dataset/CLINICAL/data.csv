@@ -1,0 +1,3 @@
+record_id,record_num,assessor,date_of_recording,date_of_birth,group,age_year,age_range,sex,handedness,psy_scale,iq_metric,iq_score,srs_total_t,nepsy2_affects_recogn_raw,nepsy2_social_perception_raw,nepsy2_tom_verbal_cents,nepsy2_tom_total_cents,purdue_pegboard,purdue_rp_preferred_hand
+REC-200319-A,1,aline,2016-12-19,1999-11-30,2.0,49.1,7 : 25+,1.0,droite,0.0,qit,113.0,38.0,,,,,,
+REC-200320-A,1,aline,2016-12-19,1999-11-30,1.0,49.1,7 : 25+,1.0,droite,2.0,qit,144.0,78.0,,,,,,

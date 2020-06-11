@@ -17,7 +17,8 @@ def test_log_all(record):
     assert set(logs.scope.unique()) == {"record"}
     assert set(logs.task.unique()) == set(record.config["tasks"])
     assert set(logs.modality.unique()) == set(record.config["modalities"]) - {
-        "clinical"
+        "clinical",
+        "processed",
     }
 
 

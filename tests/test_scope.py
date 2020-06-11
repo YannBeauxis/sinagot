@@ -5,7 +5,7 @@ import pytest
 
 def test_tasks(records, record):
     SCOPES = (records, record)
-    DIMENSIONS = (("tasks", "task", 3), ("modalities", "modality", 3))
+    DIMENSIONS = (("tasks", "task", 3), ("modalities", "modality", 4))
     for scope, dimension in product(SCOPES, DIMENSIONS):
         method, label, number = dimension
         method = "iter_" + method
@@ -26,10 +26,11 @@ def test_tasks(records, record):
         ("HDC", None, ("RecordCollection", "Record")),
         ("MMN", None, ("RecordCollection", "Record")),
         (None, "EEG", ("RecordCollection", "Record")),
-        (None, "clinical", ("RecordCollection", "Record")),
+        (None, "clinical", ("ClinicalRecordCollection", "ClinicalRecord")),
+        (None, "processed", ("ProcessedRecordCollection", "ProcessedRecord")),
         ("RS", "EEG", ("RecordCollection", "Record")),
         ("HDC", "behavior", ("BehaviorRecordCollection", "BehaviorRecord")),
-        ("MMN", "clinical", ("RecordCollection", "Record")),
+        ("MMN", "clinical", ("ClinicalRecordCollection", "ClinicalRecord")),
     ],
 )
 def test_get_subscope(records, record, task, modality, class_names):

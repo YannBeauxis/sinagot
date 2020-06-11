@@ -41,3 +41,9 @@ class Model:
         module = importutil.module_from_spec(spec)
         spec.loader.exec_module(module)
         return getattr(module, class_name)
+
+    @staticmethod
+    def _get_plugin_modules(plugin_model):
+
+        plugin = import_module("sinagot.plugins.models." + plugin_model)
+        return getattr(plugin, "MODELS")
