@@ -41,13 +41,6 @@ class RecordCollection(Scope):
                 pass
         self._ids = []
 
-    #  TODO: Deprecated warning
-    def ids(self):
-        """
-        !!! warning 
-            **DEPRECATED** Use `iter_ids()` instead"""
-        return self.iter_ids()
-
     def iter_ids(self) -> Generator[str, None, None]:
         """Generator all record ids within the record_collection.
         

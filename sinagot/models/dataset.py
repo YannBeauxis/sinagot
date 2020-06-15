@@ -132,33 +132,9 @@ class Dataset(Model):
         Record._set_subscopes(self)
 
         self._records = RecordCollection(self)
-        self._DEPRECATED_alias_records()
         self._alias_subscopes()
 
     def _alias_subscopes(self):
         ALIASES = self.records._tasks + self.records._modalities
-        for alias in ALIASES:
-            setattr(self, alias, getattr(self.records, alias))
-
-    def _DEPRECATED_alias_records(self):
-        ALIASES = [
-            "dataset",
-            "ids",
-            "get",
-            "first",
-            "all",
-            "count",
-            "has",
-            "count_detail",
-            "iter_tasks",
-            "tasks",
-            "task",
-            "iter_modalities",
-            "modality",
-            "modalities",
-            "run",
-            "_MODEL_TYPE",
-            "_subscope_class",
-        ]
         for alias in ALIASES:
             setattr(self, alias, getattr(self.records, alias))

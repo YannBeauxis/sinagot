@@ -20,7 +20,6 @@ class Scope(Model):
 
     _REPR_ATTRIBUTES = ["task", "modality"]
     _MODEL_TYPE = None
-    _DEPRECATED_MODEL_TYPES = {"subset": "record_collection"}
     _subscope_class = None
     _tasks = []
     task = None
@@ -105,13 +104,6 @@ class Scope(Model):
             if custom_class:
                 return custom_class
 
-            # TODO: DEPRECATED
-            custom_class, model_type = cls._DEPRECATED_get_model_type_from_config(
-                sub_config, model_type
-            )
-            if custom_class:
-                return dataset._get_module(custom_class, value, "models", model_type)
-
             plugin_model = sub_config.get("plugin")
             if plugin_model:
                 return cls._get_plugin_modules(plugin_model)[model_type]
@@ -133,14 +125,6 @@ class Scope(Model):
             if record_class:
                 custom_class._record_class = record_class
         return custom_class
-
-    #  TODO: Deprecated warning
-    @classmethod
-    def _DEPRECATED_get_model_type_from_config(cls, sub_config, model_type):
-        for key in sub_config.keys():
-            if cls._DEPRECATED_MODEL_TYPES.get(key) == model_type:
-                return sub_config[key], key
-        return sub_config.get(model_type), model_type
 
     @staticmethod
     def _property_factory(_subscope_class, subscope, value):
@@ -212,23 +196,16 @@ class Scope(Model):
         """
 
         if self.task is None:
-            tasks = self.tasks()
+            tasks = self.iter_tasks()
         else:
             tasks = [self]
         for task in tasks:
             if task.modality is None:
-                modalities = task.modalities()
+                modalities = task.iter_modalities()
             else:
                 modalities = [task]
             for modality in modalities:
                 yield modality
-
-    #  TODO: Deprecated warning
-    def units(self):
-        """
-        !!! warning 
-            **DEPRECATED** Use `iter_units()` instead"""
-        return self.iter_units()
 
     def iter_tasks(self) -> Generator["Scope", None, None]:
         """
@@ -243,13 +220,6 @@ class Scope(Model):
                 model = getattr(self, task)
                 yield model
 
-    #  TODO: Deprecated warning
-    def tasks(self):
-        """
-        !!! warning 
-            **DEPRECATED** Use `iter_tasks()` instead"""
-        return self.iter_tasks()
-
     def iter_modalities(self) -> Generator["Scope", None, None]:
         """
         Generate subscopes of the current scope for each of its modalities.
@@ -261,30 +231,6 @@ class Scope(Model):
         for modality in self._modalities:
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
-
-    #  TODO: Deprecated warning
-    def modalities(self):
-        """
-        !!! warning 
-            **DEPRECATED** Use `iter_modalities()` instead"""
-        return self.iter_modalities()
-
-    # TODO: deprecated warning
-    def run(self, *args, **kwargs):
-        """
-        !!! warning 
-            **DEPRECATED** Use `steps.run()` instead"""
-
-        return self.steps.run(*args, **kwargs)
-
-    # TODO: deprecated warning
-    def status(self):
-        """
-        !!! warning 
-            **DEPRECATED** Use `steps.status()` instead
-        """
-
-        return self.steps.status()
 
     # TODO: To test
     def count_group(

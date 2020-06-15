@@ -102,7 +102,7 @@ class Record(Scope):
 
     def _structure_status(self, columns):
 
-        df = self.status()
+        df = self.steps.status()
 
         def status_default_dict():
             def dict_to_list():

@@ -12,7 +12,7 @@ def test_log_no_empty(record):
 
 def test_log_all(record):
 
-    record.run()
+    record.steps.run()
     logs = record.logs()
     assert set(logs.scope.unique()) == {"record"}
     assert set(logs.task.unique()) == set(record.config["tasks"])
@@ -24,7 +24,7 @@ def test_log_all(record):
 
 def test_log_subscope(record):
 
-    record.run()
+    record.steps.run()
 
     # Task
     logs = record.HDC.logs()
@@ -45,6 +45,6 @@ def test_log_subscope(record):
 def test_log_status(record):
 
     assert len(record.logs()) == 0
-    record.run()
+    record.steps.run()
     assert StepStatus.PROCESSING in list(record.logs()[LOG_STEP_STATUS].unique())
     assert StepStatus.DONE in list(record.logs()[LOG_STEP_STATUS].unique())

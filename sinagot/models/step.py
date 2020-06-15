@@ -82,7 +82,7 @@ class Step(Model):
         Args:
             force: Force run and overwrites result file(s) if already exist(s).
         """
-        self.model.run(step_label=self.label, force=force, debug=debug)
+        self.model.steps.run(step_label=self.label, force=force, debug=debug)
 
     def logs(self) -> pd.DataFrame:
         """

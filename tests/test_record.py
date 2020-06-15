@@ -24,4 +24,4 @@ def test_modality_exist_only_for_the_right_tasks(record):
 
 
 def test_run(record):
-    record.run()
+    record.steps.run()

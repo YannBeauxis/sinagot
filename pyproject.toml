@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sinagot"
-version = "0.1.4"
+version = "0.2.0"
 description = "Python library to manage data processing on a dataset."
 authors = [
     "Yann Beauxis <dev@yannbeauxis.net>",
