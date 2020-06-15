@@ -96,18 +96,43 @@ class Scope(Model):
     def _search_custom_subscope_in_config(cls, subscope, value, dataset):
         model_type = cls._MODEL_TYPE
         if subscope == "modality":
+
             sub_config = dataset.config
             for key in ("modalities", value, "models"):
                 sub_config = sub_config.get(key, {})
+
+            custom_class = cls._get_custom_class(dataset, value)
+            if custom_class:
+                return custom_class
+
+            # TODO: DEPRECATED
             custom_class, model_type = cls._DEPRECATED_get_model_type_from_config(
                 sub_config, model_type
             )
             if custom_class:
                 return dataset._get_module(custom_class, value, "models", model_type)
+
             plugin_model = sub_config.get("plugin")
             if plugin_model:
                 return cls._get_plugin_modules(plugin_model)[model_type]
         return cls
+
+    @classmethod
+    def _get_custom_class(cls, dataset, value):
+        model_type = cls._MODEL_TYPE
+        base_class_name = model_type.title().replace("_", "")
+        try:
+            custom_class = dataset._get_module(
+                base_class_name, value, "models", model_type
+            )
+        except FileNotFoundError:
+            return None
+        custom_class.__name__ = value.title() + base_class_name
+        if model_type == "record_collection":
+            record_class = custom_class._record_class._get_custom_class(dataset, value)
+            if record_class:
+                custom_class._record_class = record_class
+        return custom_class
 
     #  TODO: Deprecated warning
     @classmethod
@@ -262,7 +287,7 @@ class Scope(Model):
         return self.steps.status()
 
     # TODO: To test
-    def count_detail(
+    def count_group(
         self, groupby: Optional[str] = None, group_mode: Optional[str] = "all",
     ) -> pd.DataFrame:
         """
@@ -289,7 +314,7 @@ class Scope(Model):
         if group_mode not in ("all", "any", "mean"):
             raise AttributeError("aggregate_mode arg not valid")
 
-        count = self._count_detail()
+        count = self.count_detail()
         count = count.groupby(["task", "modality"]).sum()
         if groupby:
             count = count.groupby(groupby)
@@ -302,12 +327,14 @@ class Scope(Model):
             return count.reset_index().reindex(groupby + ["count"], axis=1)
         return count
 
-    def _count_detail(self):
+    def count_detail(self):
 
         if self.is_unit:
-            return self._count_detail_unit()
+            df = self._count_detail_unit()
         else:
-            return pd.concat([unit._count_detail() for unit in self.iter_units()])
+            df = pd.concat([unit.count_detail() for unit in self.iter_units()])
+        df.reset_index(drop=True, inplace=True)
+        return df
 
     def _count_detail_unit(self):
         return pd.DataFrame()

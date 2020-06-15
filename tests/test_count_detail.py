@@ -1,43 +1,75 @@
 import pandas as pd
 
-
-def test_record_count_detail(record):
-    values = (
+COUNT_VALUES = {
+    "REC-200319-A": (
         ("RS", "EEG", 1),
         ("RS", "clinical", 1),
         ("MMN", "EEG", 1),
         ("MMN", "clinical", 1),
         ("HDC", "EEG", 1),
-        ("HDC", "behavior", 0),
         ("HDC", "clinical", 1),
+    ),
+    "REC-200320-A": (
+        ("RS", "EEG", 1),
+        ("RS", "clinical", 1),
+        ("MMN", "EEG", 1),
+        ("MMN", "clinical", 1),
+        ("HDC", "EEG", 1),
+        ("HDC", "behavior", 1),
+        ("HDC", "clinical", 1),
+    ),
+}
+
+
+def test_record_count_detail(record):
+    COUNT_VALUES = (
+        ("RS", "EEG", 1),
+        ("RS", "clinical", 1),
+        ("MMN", "EEG", 1),
+        ("MMN", "clinical", 1),
+        ("HDC", "EEG", 1),
+        ("HDC", "clinical", 1),
+        ("HDC", "behavior", 0),
     )
-    eval_dataframes(values, record.count_detail())
+    COLS = ["task", "modality", "count"]
+    expected_df = pd.DataFrame(COUNT_VALUES, columns=COLS)
+    expected_df.insert(0, "record_id", record.id)
+    target_df = record.count_detail()
+    eval_dataframes(expected_df, target_df, COLS)
 
 
 def test_dataset_count_detail(dataset):
-    values = (
-        ("HDC", "EEG", 2),
-        ("HDC", "behavior", 1),
-        ("HDC", "clinical", 2),
-        ("MMN", "EEG", 2),
-        ("MMN", "clinical", 2),
-        ("RS", "EEG", 2),
-        ("RS", "clinical", 2),
-    )
-    eval_dataframes(values, dataset.records.count_detail())
+    COUNT_VALUES = {
+        "REC-200319-A": (
+            ("RS", "EEG", 1),
+            ("RS", "clinical", 1),
+            ("MMN", "EEG", 1),
+            ("MMN", "clinical", 1),
+            ("HDC", "EEG", 1),
+            ("HDC", "clinical", 1),
+        ),
+        "REC-200320-A": (
+            ("RS", "EEG", 1),
+            ("RS", "clinical", 1),
+            ("MMN", "EEG", 1),
+            ("MMN", "clinical", 1),
+            ("HDC", "EEG", 1),
+            ("HDC", "behavior", 1),
+            ("HDC", "clinical", 1),
+        ),
+    }
+    COLS = ["record_id", "task", "modality", "count"]
+    values = [
+        (rec_id, *vals) for rec_id, values in COUNT_VALUES.items() for vals in values
+    ]
+    expected_df = pd.DataFrame(values, columns=COLS)
+    target_df = dataset.records.count_detail()
+    eval_dataframes(expected_df, target_df, COLS)
 
 
-def gen_row(task, modality, count):
-    return pd.DataFrame([{"task": task, "modality": modality, "count": count}])
-
-
-def eval_dataframes(expected_values, target_dataframe):
-    expected_df = (
-        pd.concat([gen_row(*row) for row in expected_values])
-        .reset_index()
-        .sort_values(["task", "modality"])
-    ).set_index(["task", "modality"])
-    expected_df.pop("index")
-    pd.testing.assert_frame_equal(
-        expected_df, target_dataframe.sort_values(["task", "modality"])
-    )
+def eval_dataframes(expected_df, target_df, columns):
+    expected_df = expected_df.sort_values(columns).reset_index(drop=True)
+    target_df = target_df.sort_values(columns).reset_index(drop=True)
+    print(expected_df)
+    print(target_df)
+    pd.testing.assert_frame_equal(expected_df, target_df)

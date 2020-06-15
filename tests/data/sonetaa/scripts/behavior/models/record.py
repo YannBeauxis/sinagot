@@ -1,7 +1,7 @@
-from sinagot.models import Record
+from sinagot.models import Record as RawRecord
 
 
-class BehaviorRecord(Record):
+class Record(RawRecord):
 
     task = "HDC"
 

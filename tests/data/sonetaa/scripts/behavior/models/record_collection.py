@@ -1,7 +1,7 @@
-from sinagot.models import RecordCollection
+from sinagot.models import RecordCollection as RawRecordCollection
 
 
-class BehaviorRecordCollection(RecordCollection):
+class RecordCollection(RawRecordCollection):
 
     task = "HDC"
 
