@@ -171,9 +171,9 @@ class RecordCollection(Scope):
 
         return sum(1 for rec in self.iter_ids())
 
-    def _count_detail_unit(self):
+    def _count_detail_unit(self, with_record_id=False):
 
-        return pd.DataFrame(
+        df = pd.DataFrame(
             [
                 {
                     "record_id": record_id,
@@ -184,6 +184,10 @@ class RecordCollection(Scope):
                 for record_id in self.iter_ids()
             ]
         )
+        if with_record_id:
+            return df
+        else:
+            return df.groupby(["task", "modality"]).sum().reset_index()
 
     # TODO: To test
     def logs(self) -> pd.DataFrame:

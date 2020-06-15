@@ -232,53 +232,14 @@ class Scope(Model):
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
 
-    # TODO: To test
-    def count_group(
-        self, groupby: Optional[str] = None, group_mode: Optional[str] = "all",
-    ) -> pd.DataFrame:
-        """
-        Args:
-            groupby: If not `None`, columns to perform a groupby.
-            group_mode: method to count the groupby. Possible values:
-
-                - 'all': Sum if exists in each scope of the aggregation.
-
-                - 'any': Sum if exists in at least one scope of the aggregation.
-
-                - 'mean': Mean each scope of the aggregation.
-
-        Returns:
-            Detail count if record exists i.e. has raw data.
-
-        Raises:
-            AttributeError: if group_mode not in ('all', 'any', 'mean').
-        """
-
-        if isinstance(groupby, str):
-            groupby = [groupby]
-
-        if group_mode not in ("all", "any", "mean"):
-            raise AttributeError("aggregate_mode arg not valid")
-
-        count = self.count_detail()
-        count = count.groupby(["task", "modality"]).sum()
-        if groupby:
-            count = count.groupby(groupby)
-            if group_mode == "all":
-                count = count.min()
-            if group_mode == "any":
-                count = count.max()
-            if group_mode == "mean":
-                count = count.mean()
-            return count.reset_index().reindex(groupby + ["count"], axis=1)
-        return count
-
-    def count_detail(self):
+    def count_detail(self, *args, **kwargs):
 
         if self.is_unit:
-            df = self._count_detail_unit()
+            df = self._count_detail_unit(*args, **kwargs)
         else:
-            df = pd.concat([unit.count_detail() for unit in self.iter_units()])
+            df = pd.concat(
+                [unit.count_detail(*args, **kwargs) for unit in self.iter_units()]
+            )
         df.reset_index(drop=True, inplace=True)
         return df
 
