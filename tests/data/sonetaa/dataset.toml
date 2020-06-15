@@ -33,8 +33,7 @@
         models.record = 'BehaviorRecord'
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]
-        models.plugin = "clinical"
-        dataframe_path=['CLINICAL', 'data.csv']
+        models.plugin = "pandas"
     [modalities.processed]
         models.plugin = "processed"
 
@@ -46,3 +45,6 @@
     [tasks.HDC]
         modalities = ["clinical", "EEG", "behavior"]
 
+[plugins]
+    [plugins.pandas]
+        path=["CLINICAL", "data.csv"]
