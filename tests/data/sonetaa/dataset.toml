@@ -32,6 +32,7 @@
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]
         models.plugin = "pandas"
+        models.dataframe_path = ['CLINICAL', 'data.csv']
     [modalities.processed]
         models.plugin = "processed"
 
@@ -43,6 +44,3 @@
     [tasks.HDC]
         modalities = ["clinical", "EEG", "behavior"]
 
-[plugins]
-    [plugins.pandas]
-        path=["CLINICAL", "data.csv"]

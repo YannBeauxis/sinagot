@@ -32,8 +32,8 @@ class DataframeRecordCollection(RecordCollection):
 
     @property
     def dataframe(self):
-        sub_path = self.config["plugins"]["pandas"]["path"]
-        file_path = self.dataset._data_path.joinpath(*sub_path)
+        sub_path = self.config["modalities"][self.modality]["models"]["dataframe_path"]
+        file_path = self.dataset.data_path.joinpath(*sub_path)
         df = pd.read_csv(file_path, index_col="record_id", parse_dates=self.DATE_FIELDS)
         return df
 
