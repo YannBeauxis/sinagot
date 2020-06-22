@@ -16,7 +16,7 @@ def test_create_output_dir(dataset):
     record = dataset.RS.EEG.get(REC_ID)
     step = record.steps.get("alpha")
     script = step.script
-    assert not script.data_exist.input
+    assert not all(script.data_exist.input.values())
     script.path.input.mkdir(parents=True)
     assert not script.path.output.parent.exists()
     step.run()

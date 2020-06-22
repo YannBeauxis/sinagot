@@ -30,7 +30,7 @@ def test_record_count_detail(record):
         ("MMN", "clinical", 1),
         ("HDC", "EEG", 1),
         ("HDC", "clinical", 1),
-        ("HDC", "behavior", 0),
+        ("HDC", "behavior", 1),
     )
     COLS = ["task", "modality", "count"]
     expected_df = pd.DataFrame(COUNT_VALUES, columns=COLS)

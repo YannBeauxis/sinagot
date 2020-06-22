@@ -101,8 +101,11 @@ class ScriptTemplate:
         self._init_logger()
         self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
-        if not self.data_exist.input:
-            self._log_status("Input data not available", StepStatus.DATA_NOT_AVIABLE)
+        if not all(self.data_exist.input.values()):
+            missing = [key for key, value in self.data_exist.input.items()]
+            self._log_status(
+                "Input data  %s not available", StepStatus.DATA_NOT_AVIABLE, missing
+            )
         elif not self._has_to_run(force):
             self._log_status("Run already processed", StepStatus.DONE)
         else:
@@ -121,8 +124,8 @@ class ScriptTemplate:
 
         return True
 
-    def _log_status(self, message, status):
-        self._logger.info(message, extra=self._log_extra(status))
+    def _log_status(self, message, status, *args):
+        self._logger.info(message, *args, extra=self._log_extra(status))
 
     def run(self):
         self.logger.info("Running ...")
@@ -133,10 +136,11 @@ class ScriptTemplate:
         return DataStatus(*(self._path_exist(target) for target in self._PATH_LABELS))
 
     def _path_exist(self, target):
-        for path in self._iter_paths(target):
-            if not path.exists():
-                return False
-        return True
+        # for path in self._iter_paths(target):
+        #     if not path.exists():
+        #         return False
+        # return True
+        return {path: path.exists() for path in self._iter_paths(target)}
 
     def _mkdir_output(self):
         for path in self._iter_paths("output"):
