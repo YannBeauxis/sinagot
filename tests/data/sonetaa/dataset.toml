@@ -27,7 +27,7 @@
     [modalities.EEG]
         file_match = [true, false]
         scripts = ['preprocess']
-        tasks_scripts.RS = ['alpha']
+        task_scripts.RS = ['alpha']
     [modalities.behavior]
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]

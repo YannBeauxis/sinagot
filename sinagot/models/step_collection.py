@@ -157,7 +157,7 @@ class StepCollection(Model):
     def _modality_scripts_names(self):
         mod_config = self.dataset.config["modalities"].get(self.modality, {})
         shared_names = mod_config.get("scripts", [])
-        task_scripts = mod_config.get("tasks_scripts", {})
+        task_scripts = mod_config.get("task_scripts", {})
         if self.task:
             task_names = task_scripts.get(self.task, [])
         else:
