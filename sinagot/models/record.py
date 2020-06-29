@@ -5,7 +5,7 @@ from collections import defaultdict
 from typing import Optional
 from io import StringIO
 import pandas as pd
-from sinagot.models import Scope
+from sinagot.models import Model, Scope
 from sinagot.utils import (
     record_log_file_path,
     LOG_STEP_LABEL,
@@ -14,7 +14,7 @@ from sinagot.utils import (
 from sinagot.models.exceptions import NotUnitError
 
 
-class Record(Scope):
+class UnitRecord(Model):
     """
     A Record instance is used to manipulate a single record data.
     It's accessed from a [RecordCollection](record_collection.md).
@@ -43,6 +43,8 @@ class Record(Scope):
         self.id = record_id
         super().__init__(dataset, *args, **kwargs)
 
+
+class Record(UnitRecord, Scope):
     def logs(self) -> pd.DataFrame:
         """
         Returns:

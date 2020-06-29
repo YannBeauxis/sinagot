@@ -13,32 +13,25 @@ class Step(Model):
 
     _REPR_ATTRIBUTES = ["scope", "task", "modality", "label"]
     _MODEL_TYPE = "step"
-    label = None
-    id = None
+    task = None
 
     def __init__(self, script, model):
 
-        if not model.modality:
-            raise NoModalityError
         self.model = model
-        self.task = model.task
-        self.modality = model.modality
         super().__init__(model.dataset)
 
         if inspect.isclass(script):
             script_class = script
-            self.label = script.__class__.__name__
+            label = script.__class__.__name__
         elif isinstance(script, str):
             try:
-                script_class = self._get_module("Script", self.modality, script)
+                script_class = self._get_module("Script", *self._scripts_folder, script)
             except FileNotFoundError as ex:
                 raise NotFoundError from ex
-            self.label = script
+            label = script
         else:
             raise AttributeError("Type {} is not valid for script".format(type(script)))
-
-        if model._MODEL_TYPE == "record":
-            self.id = model.id
+        self.label = label
 
         self.script_class = script_class
         self.script = script_class(
@@ -47,6 +40,15 @@ class Step(Model):
             task=self.task,
             logger_namespace=self.logger.name,
         )
+
+    @property
+    def _scripts_folder(self):
+        return []
+
+    @property
+    def id(self):
+        if self.model._MODEL_TYPE == "record":
+            return self.model.id
 
     def status(self) -> int:
         """Get status code.
@@ -95,3 +97,16 @@ class Step(Model):
             )
         except:
             return pd.DataFrame()
+
+
+class ScopedStep(Step):
+    def __init__(self, script, model):
+        if not model.modality:
+            raise NoModalityError
+        self.task = model.task
+        self.modality = model.modality
+        super().__init__(script, model)
+
+    @property
+    def _scripts_folder(self):
+        return [self.modality]

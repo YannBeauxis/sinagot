@@ -2,15 +2,16 @@
 
 from typing import Optional, Union
 import pandas as pd
-from sinagot.models import Model, Step
+from sinagot.models import Model, Step, ScopedStep
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
 from sinagot.models.exceptions import NoModalityError, NotFoundError, NotUnitError
 
 
 class StepCollection(Model):
-    """Manage the collection of all steps of a scope."""
+    """Manage the collection of all steps."""
 
     _MODEL_TYPE = "step_collection"
+    _STEP_CLASS = Step
 
     def __init__(self, model):
         """
@@ -19,6 +20,64 @@ class StepCollection(Model):
         """
         super().__init__(model.dataset)
         self.model = model
+
+    def scripts_names(self):
+        return self._scripts_config
+
+    @property
+    def _scripts_config(self):
+        return self.dataset.config.get("steps", {}).get("scripts", [])
+
+    def get(self, script_name: str) -> Step:
+        """find a step by script name.
+
+        Params:
+            script_name: script label to find.
+
+        Returns:
+            `Step` instance.
+        """
+        return self._get(script_name)
+
+    def _get(self, script_name):
+        return self._STEP_CLASS(script=script_name, model=self.model)
+
+    def first(self) -> Step:
+        """Get the first step.
+
+        Returns:
+            `Step` instance.
+        """
+        return self._first()
+
+    def _first(self):
+        names = self.scripts_names()
+        if not names:
+            return None
+        return self.get(names[0])
+
+    def count(self) -> int:
+        """
+
+        Returns:
+            number of steps.
+        """
+
+    def _count(self):
+        return len(self.scripts_names())
+
+
+class ScopedStepCollection(StepCollection):
+    """Manage the collection of all steps of a scope."""
+
+    _STEP_CLASS = ScopedStep
+
+    def __init__(self, model):
+        """
+        Params:
+            model (instance): Parent model of the collection.
+        """
+        super().__init__(model)
         self.task = self.model.task
         self.modality = self.model.modality
 
@@ -31,12 +90,7 @@ class StepCollection(Model):
         Returns:
             `Step` if model has modality, `dict` with `Step` or `None` as value for each modality either.
         """
-        return self._modality_case_response("_modality_get", script_name)
-
-    def _modality_get(self, script_name):
-        if not self.model.modality:
-            raise NoModalityError
-        return Step(script=script_name, model=self.model)
+        return self._modality_case_response("_get", script_name)
 
     def first(self) -> Union[Step, dict]:
         """Get the first step.
@@ -44,28 +98,15 @@ class StepCollection(Model):
         Returns:
             `Step` if model has modality, `dict` with first step as value for each modality either.
         """
-        return self._modality_case_response("_modality_first")
+        return self._modality_case_response("_first")
 
-    def _modality_first(self):
-        if not self.model.modality:
-            raise NoModalityError
-        names = self._modality_scripts_names()
-        if not names:
-            return None
-        return self.get(names[0])
-
-    def count(self) -> int:
+    def count(self) -> Union[int, dict]:
         """Get the number of steps.
 
         Returns:
             `int` if model has modality, `dict` with step count as value for each modality either.
         """
-        return self._modality_case_response("_modality_count")
-
-    def _modality_count(self):
-        if not self.model.modality:
-            raise NoModalityError
-        return len(self._scripts_names())
+        return self._modality_case_response("_count")
 
     def _modality_case_response(self, method, *args):
         if self.model.modality:
@@ -142,10 +183,10 @@ class StepCollection(Model):
         }
 
     def _modality_all(self):
-        for script_name in self._scripts_names():
+        for script_name in self.scripts_names():
             yield self.get(script_name)
 
-    def _scripts_names(self):
+    def scripts_names(self):
         if self.modality:
             return self._modality_scripts_names()
         else:

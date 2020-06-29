@@ -33,6 +33,7 @@ class ScriptTemplate:
     _logger_file_handler = None
     _logger = None
     logger = None
+    modality = None
 
     def __init__(self, data_path, id_, task, opts={}, logger_namespace=None):
 
@@ -41,7 +42,8 @@ class ScriptTemplate:
         self.id = id_
         self.task = task
         module_split = self.__class__.__module__.split(".")
-        self.modality = module_split[-2]
+        if len(module_split) > 1:
+            self.modality = module_split[-2]
         self.label = module_split[-1]
 
         self.opts = opts

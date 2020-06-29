@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from typing import Generator
 import pandas as pd
-from sinagot.models import Scope, Record
+from sinagot.models import Scope, Record, UnitRecord
 
 
 class RecordCollection(Scope):

@@ -1,10 +1,10 @@
 # coding=utf-8
 
 from .model import Model
-from .step import Step
-from .step_collection import StepCollection
+from .step import Step, ScopedStep
+from .step_collection import StepCollection, ScopedStepCollection
 from .scope import Scope
-from .record import Record
+from .record import Record, UnitRecord
 from .run_manager import RunManager
 from .record_collection import RecordCollection
 
@@ -21,6 +21,9 @@ __all__ = [
     "Subset",
     "RecordCollection",
     "Record",
+    "UnitRecord",
     "Step",
+    "ScopedStep",
     "StepCollection",
+    "ScopedStepCollection",
 ]
