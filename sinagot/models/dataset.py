@@ -152,3 +152,6 @@ class Dataset(Model):
         ALIASES = self.records._tasks + self.records._modalities
         for alias in ALIASES:
             setattr(self, alias, getattr(self.records, alias))
+
+    def close(self):
+        self._run_manager.close()

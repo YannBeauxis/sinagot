@@ -13,14 +13,16 @@
     file_match = [true, true]
 
 [run]
-    mode = "main_process"
-    # mode = "dask"
+    # mode = "main_process"
+    mode = "dask"
     
 [dask]
     scheduler.mode = "local"
     scheduler.n_workers = 1
     scheduler.processes = true
     scheduler.threads_per_worker = 1
+    # scheduler.scheduler_port = 8786
+    # scheduler.dashboard_address = "127.0.0.1:8787"
     asynchronous = false
 
 [modalities]

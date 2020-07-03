@@ -6,7 +6,7 @@ MODES_WORKSPACES = [{"workspace": "minimal_mode"}, {"workspace": "sonetaa"}]
 
 
 @pytest.fixture
-def dataset(shared_datadir, request):
+def dataset(shared_datadir, request, change_run_mode):
 
     workspace = getattr(request, "param", {"workspace": "sonetaa"}).get(
         "workspace", "sonetaa"
@@ -16,11 +16,21 @@ def dataset(shared_datadir, request):
     run_mode = getattr(request, "param", None) and request.param.get("run_mode")
     if run_mode:
         config_path = shared_datadir / workspace / "dataset.toml"
+        change_run_mode(config_path, run_mode)
+
+    ds = Dataset(shared_datadir / workspace)
+    yield ds
+    ds.close()
+
+
+@pytest.fixture
+def change_run_mode():
+    def func(config_path, run_mode):
         config = toml.load(config_path)
         config["run"]["mode"] = run_mode
         config_path.write_text(toml.dumps(config))
 
-    return Dataset(shared_datadir / workspace)
+    return func
 
 
 @pytest.fixture
