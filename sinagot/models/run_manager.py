@@ -52,6 +52,7 @@ class RunManager(Model):
                 script._run(force=force, debug=debug)
                 return arg
 
+        func.__name__ = step_label
         return func
 
     def close(self):
