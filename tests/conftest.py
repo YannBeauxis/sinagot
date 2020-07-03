@@ -2,6 +2,8 @@ import toml
 import pytest
 from sinagot import Dataset
 
+MODES_WORKSPACES = [{"workspace": "minimal_mode"}, {"workspace": "sonetaa"}]
+
 
 @pytest.fixture
 def dataset(shared_datadir, request):

@@ -1,6 +1,5 @@
 
 import pytest
-from sinagot import Dataset
 from sinagot.utils import StepStatus
 from sinagot.plugins.dask import DaskRunManager
 

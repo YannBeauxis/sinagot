@@ -1,6 +1,23 @@
 """Test RecordCollection class"""
 import pytest
-from sinagot.models import Record
+
+
+def test_repr_scoped(record):
+    for attr in ["task", "modality"]:
+        assert attr in record.__str__()
+        unit = record.RS.EEG
+        assert unit.is_unit
+        assert attr in unit.__str__()
+
+
+@pytest.mark.parametrize("dataset", [{"workspace": "minimal_mode"}], indirect=True)
+def test_repr_unit_mode(dataset):
+    assert dataset.records.__class__.__name__ == "RecordCollection"
+    record = dataset.records.first()
+    assert record.__class__.__name__ == "Record"
+    for attr in ["task", "modality"]:
+        assert record.is_unit
+        assert attr not in record.__str__()
 
 
 def test_set_subscope_record(record, TASKS):

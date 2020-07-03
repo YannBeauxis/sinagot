@@ -1,12 +1,12 @@
 import pytest
 from sinagot.utils import StepStatus
-from sinagot.models import Step
+from sinagot.models import Step, ScopedStep
 from sinagot.models.exceptions import NotFoundError, NoModalityError
 
 
 def test_init_error(dataset):
     with pytest.raises(NoModalityError):
-        Step("missing_label", dataset.records)
+        ScopedStep("missing_label", dataset.records)
     with pytest.raises(NotFoundError):
         Step("missing_label", dataset.behavior)
 

@@ -4,7 +4,14 @@ import re
 from pathlib import Path
 from typing import Union, Optional
 import toml
-from sinagot.models import RecordCollection, Record, RunManager, Model
+from sinagot.models import (
+    RecordCollection,
+    RecordCollectionUnit,
+    Record,
+    RecordUnit,
+    RunManager,
+    Model,
+)
 from sinagot.config import ConfigurationError
 from sinagot.logger import logger_factory
 
@@ -59,6 +66,9 @@ class Dataset(Model):
             self._config_path = self._config_path / "dataset.toml"
         self.config = toml.load(self._config_path)
         """Config dictionnary from config file."""
+        self.is_unit_mode = not any(
+            scope in self.config for scope in ("tasks", "modalities")
+        )
 
     def _set_data_path(self, data_path):
         if data_path is None:
@@ -128,11 +138,15 @@ class Dataset(Model):
 
     def _init_records(self):
 
-        RecordCollection._set_subscopes(self)
-        Record._set_subscopes(self)
-
-        self._records = RecordCollection(self)
-        self._alias_subscopes()
+        if self.is_unit_mode:
+            RecordCollectionUnit.__name__ = "RecordCollection"
+            RecordUnit.__name__ = "Record"
+            self._records = RecordCollectionUnit(self)
+        else:
+            self._records = RecordCollection(self)
+            RecordCollection._set_subscopes(self)
+            Record._set_subscopes(self)
+            self._alias_subscopes()
 
     def _alias_subscopes(self):
         ALIASES = self.records._tasks + self.records._modalities

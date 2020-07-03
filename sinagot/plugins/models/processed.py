@@ -86,4 +86,5 @@ class ProcessedRecordCollection(RecordCollection):
     def get_processed_data(self, **kwargs):
         return pd.concat([rec.get_processed_data(**kwargs) for rec in self.all()])
 
+
 MODELS = {"record": ProcessedRecord, "record_collection": ProcessedRecordCollection}
