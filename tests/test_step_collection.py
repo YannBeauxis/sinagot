@@ -44,7 +44,7 @@ def method_eval_label(dataset, method, *args):
     indirect=["dataset"],
 )
 def test_get(dataset, label):
-    if dataset.is_unit:
+    if dataset.is_unit_mode:
         records = dataset
     else:
         records = dataset.HDC.behavior
@@ -64,7 +64,7 @@ def test_get(dataset, label):
     indirect=["dataset"],
 )
 def test_first(dataset, label):
-    if dataset.is_unit:
+    if dataset.is_unit_mode:
         assert dataset.steps.first().label == label
     else:
         assert dataset.HDC.behavior.steps.first().label == label
@@ -81,7 +81,7 @@ def test_first(dataset, label):
     "dataset", MODES_WORKSPACES, indirect=True,
 )
 def test_count(dataset):
-    if dataset.is_unit:
+    if dataset.is_unit_mode:
         dataset.steps.count() == 2
     else:
         assert dataset.HDC.behavior.steps.count() == 2

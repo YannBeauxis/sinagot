@@ -2,11 +2,15 @@
 
 from .model import Model
 from .step import Step, ScopedStep
-from .step_collection import StepCollection, ScopedStepCollection
+from .step_collection import (
+    StepCollectionUnit,
+    StepCollection,
+    ModelWithStepCollection,
+)
 from .scope import Scope
-from .record import Record, UnitRecord
+from .record import RecordUnit, Record
 from .run_manager import RunManager
-from .record_collection import RecordCollection
+from .record_collection import RecordCollectionUnit, RecordCollection
 
 Subset = RecordCollection
 from .dataset import Dataset, ConfigurationError
@@ -19,11 +23,13 @@ __all__ = [
     "Dataset",
     "ConfigurationError",
     "Subset",
+    "RecordCollectionUnit",
     "RecordCollection",
     "Record",
-    "UnitRecord",
+    "RecordUnit",
     "Step",
     "ScopedStep",
+    "StepCollectionUnit",
     "StepCollection",
-    "ScopedStepCollection",
+    "ModelWithStepCollection",
 ]

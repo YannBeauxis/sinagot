@@ -37,7 +37,7 @@ class DataframeRecordCollection(RecordCollection):
         df = pd.read_csv(file_path, index_col="record_id", parse_dates=self.DATE_FIELDS)
         return df
 
-    def _iter_ids_unit(self):
+    def iter_ids(self):
         """Return the list of all records ids in dataframe"""
 
         return list(self.dataframe.index)

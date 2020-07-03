@@ -4,10 +4,22 @@ from typing import Optional, Union
 import pandas as pd
 from sinagot.models import Model, Step, ScopedStep
 from sinagot.utils import LOG_STEP_LABEL, LOG_STEP_STATUS
-from sinagot.models.exceptions import NoModalityError, NotFoundError, NotUnitError
+from sinagot.models.exceptions import NotFoundError, NotUnitError
 
 
-class StepCollection(Model):
+class ModelWithStepCollection(Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.steps: StepCollection = self.set_step_collection()
+        """Collection of steps."""
+
+    def set_step_collection(self):
+        if self.dataset.is_unit_mode:
+            return StepCollectionUnit(self)
+        return StepCollection(self)
+
+
+class StepCollectionUnit(Model):
     """Manage the collection of all steps."""
 
     _MODEL_TYPE = "step_collection"
@@ -67,7 +79,7 @@ class StepCollection(Model):
         return len(self.scripts_names())
 
 
-class ScopedStepCollection(StepCollection):
+class StepCollection(StepCollectionUnit):
     """Manage the collection of all steps of a scope."""
 
     _STEP_CLASS = ScopedStep

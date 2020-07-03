@@ -3,7 +3,7 @@
 from importlib import import_module
 from typing import Optional, Generator
 import pandas as pd
-from sinagot.models import Model, StepCollection, ScopedStepCollection
+from sinagot.models import Model
 
 
 class Scope(Model):
@@ -52,13 +52,11 @@ class Scope(Model):
             self._subscope_class = self.__class__
         super().__init__(dataset)
 
-        self.steps: StepCollection = self.set_step_collection()
-        """Collection of steps."""
-
-    def set_step_collection(self):
-        if self.dataset.is_unit:
-            return StepCollection(self)
-        return ScopedStepCollection(self)
+    def _get_repr_attributes(self):
+        attributes = super()._get_repr_attributes()
+        if not self.dataset.is_unit_mode:
+            attributes.extend(["task", "modality"])
+        return attributes
 
     @classmethod
     def _set_subscopes(cls, dataset):

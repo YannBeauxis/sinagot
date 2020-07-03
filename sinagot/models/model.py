@@ -25,11 +25,18 @@ class Model:
         attributes = ", ".join(
             [
                 "{label}: {value}".format(label=label, value=getattr(self, label))
-                for label in self._REPR_ATTRIBUTES
+                for label in self._get_repr_attributes()
                 if hasattr(self, label)
             ]
         )
         return "<{} instance | ".format(self.__class__.__name__) + attributes + ">"
+
+    @property
+    def is_unit(self) -> bool:
+        return True
+
+    def _get_repr_attributes(self):
+        return self._REPR_ATTRIBUTES
 
     def _get_module(self, class_name, *args):
         """Import a module from scripts folder"""

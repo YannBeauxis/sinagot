@@ -2,10 +2,9 @@
 
 import json
 from collections import defaultdict
-from typing import Optional
 from io import StringIO
 import pandas as pd
-from sinagot.models import Model, Scope
+from sinagot.models import ModelWithStepCollection, Scope
 from sinagot.utils import (
     record_log_file_path,
     LOG_STEP_LABEL,
@@ -14,7 +13,26 @@ from sinagot.utils import (
 from sinagot.models.exceptions import NotUnitError
 
 
-class UnitRecord(Model):
+class RecordUnit(ModelWithStepCollection):
+
+    _REPR_ATTRIBUTES = ["id"]
+    _MODEL_TYPE = "record"
+
+    def __init__(self, dataset: "Dataset", record_id: str, *args, **kwargs):
+        """
+        Args:
+            dataset: Root Dataset.
+            record_id: ID of the record.
+        """
+
+        # TODO: raise exception if id not match regex in config
+        self.id = record_id
+        super().__init__(dataset, *args, **kwargs)
+        self.steps: "StepCollection" = self.set_step_collection()
+        """Collection of steps."""
+
+
+class Record(RecordUnit, Scope):
     """
     A Record instance is used to manipulate a single record data.
     It's accessed from a [RecordCollection](record_collection.md).
@@ -29,22 +47,6 @@ class UnitRecord(Model):
     ```
     """
 
-    _REPR_ATTRIBUTES = ["id", "task", "modality"]
-    _MODEL_TYPE = "record"
-
-    def __init__(self, dataset: "Dataset", record_id: str, *args, **kwargs):
-        """
-        Args:
-            dataset: Root Dataset.
-            record_id: ID of the record.
-        """
-
-        # TODO: raise exception if id not match regex in config
-        self.id = record_id
-        super().__init__(dataset, *args, **kwargs)
-
-
-class Record(UnitRecord, Scope):
     def logs(self) -> pd.DataFrame:
         """
         Returns:

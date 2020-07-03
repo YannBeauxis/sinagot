@@ -5,70 +5,21 @@ from pathlib import Path
 import re
 from typing import Generator
 import pandas as pd
-from sinagot.models import Scope, Record, UnitRecord
+from sinagot.models import ModelWithStepCollection, Scope, Record, RecordUnit
 
 
-class RecordCollection(Scope):
-    """
-    A RecordCollection is used to manipulate a collection of [Record](record.md).
-
-    Note:
-        Inherite [Scope](scope.md) methods.
-
-    Example:
-
-    ```python
-    # access record_collection of all EEG records (EEG is a task)
-    sub = ds.EEG  # ds is a Dataset instance
-    ```
-    """
+class RecordCollectionUnit(ModelWithStepCollection):
 
     _MODEL_TYPE = "record_collection"
-    _record_class = Record
+    _record_class = RecordUnit
+    task = None
 
-    def __init__(self, *args, **kwargs):
-        self._subscope_class = self.__class__
-        super().__init__(*args, **kwargs)
-        modality = self.modality
-        # Check for custom record class
-        if modality is not None:
-            try:
-                class_name = self.config["modalities"][modality]["models"]["record"]
-                self._record_class = self._get_module(
-                    class_name, modality, "models", "record"
-                )
-            except KeyError:
-                pass
-        self._ids = []
-
-    def iter_ids(self) -> Generator[str, None, None]:
+    def iter_ids(self):
         """Generator all record ids within the record_collection.
         
         Returns:
             Record ID.
         """
-        # TODO: use dataset cache for ids
-        if self.is_unit:
-            for record_id in self._iter_ids_unit():
-                yield record_id
-        else:
-            units = self.iter_units()
-            self._ids = []
-            for unit in units:
-                for record_id in unit.iter_ids():
-                    if self._is_new_id(record_id):
-                        yield record_id
-
-    def _is_new_id(self, record_id):
-        ids = self._ids
-        if record_id in ids:
-            return False
-        ids.append(record_id)
-        self._ids = ids
-        return True
-
-    def _iter_ids_unit(self):
-        """Return the list of all records ids i.e. subfolder names"""
         self._ids = []
 
         first_script = self.steps.first()
@@ -96,6 +47,14 @@ class RecordCollection(Scope):
             record_id = m.group(1)
             if self._is_new_id(record_id):
                 return record_id
+
+    def _is_new_id(self, record_id):
+        ids = self._ids
+        if record_id in ids:
+            return False
+        ids.append(record_id)
+        self._ids = ids
+        return True
 
     def _glob_pattern(self, raw_pattern):
         return str(raw_pattern).format(id="*", task="*",)
@@ -138,12 +97,7 @@ class RecordCollection(Scope):
             Record instance
         """
 
-        return self._record_class(
-            dataset=self.dataset,
-            record_id=record_id,
-            task=self.task,
-            modality=self.modality,
-        )
+        return self._record_class(dataset=self.dataset, record_id=record_id,)
 
     def has(self, record_id: str) -> bool:
         """
@@ -171,6 +125,75 @@ class RecordCollection(Scope):
 
         return sum(1 for rec in self.iter_ids())
 
+
+class RecordCollection(RecordCollectionUnit, Scope):
+    """
+    A RecordCollection is used to manipulate a collection of [Record](record.md).
+
+    Note:
+        Inherite [Scope](scope.md) methods.
+
+    Example:
+
+    ```python
+    # access record_collection of all EEG records (EEG is a task)
+    sub = ds.EEG  # ds is a Dataset instance
+    ```
+    """
+
+    _record_class = Record
+
+    def __init__(self, *args, **kwargs):
+        self._subscope_class = self.__class__
+        super().__init__(*args, **kwargs)
+        modality = self.modality
+        # Check for custom record class
+        if modality is not None:
+            try:
+                class_name = self.config["modalities"][modality]["models"]["record"]
+                self._record_class = self._get_module(
+                    class_name, modality, "models", "record"
+                )
+            except KeyError:
+                pass
+        self._ids = []
+
+    def iter_ids(self) -> Generator[str, None, None]:
+        """Generator all record ids within the record_collection.
+        
+        Returns:
+            Record ID.
+        """
+        # TODO: use dataset cache for ids
+        if self.is_unit:
+            for record_id in super().iter_ids():
+                yield record_id
+        else:
+            units = self.iter_units()
+            self._ids = []
+            for unit in units:
+                for record_id in unit.iter_ids():
+                    if self._is_new_id(record_id):
+                        yield record_id
+
+    def get(self, record_id: str) -> "Record":
+        """
+        Get record by ID.
+
+        Args:
+            record_id: record ID
+
+        Returns:
+            Record instance
+        """
+
+        return self._record_class(
+            dataset=self.dataset,
+            record_id=record_id,
+            task=self.task,
+            modality=self.modality,
+        )
+
     def _count_detail_unit(self, with_record_id=False):
 
         df = pd.DataFrame(
@@ -184,7 +207,7 @@ class RecordCollection(Scope):
                 for record_id in self.iter_ids()
             ]
         )
-        if with_record_id:
+        if df.empty or with_record_id:
             return df
         else:
             return df.groupby(["task", "modality"]).sum().reset_index()
