@@ -161,6 +161,6 @@ class ScriptTemplate:
         if force:
             return True
         for path in self._iter_paths("output"):
-            if (not path.exists()) or path.read_text() == "":
+            if not path.exists(): 
                 return True
         return False

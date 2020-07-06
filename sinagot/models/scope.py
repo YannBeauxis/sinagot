@@ -56,7 +56,7 @@ class Scope(Model):
         attributes = super()._get_repr_attributes()
         if not self.dataset.is_unit_mode:
             attributes.extend(["task", "modality"])
-        return attributes
+        return list(set(attributes))
 
     @classmethod
     def _set_subscopes(cls, dataset):

@@ -1,8 +1,6 @@
-import json
-import asyncio
-import dask
+from pathlib import Path
 from dask.distributed import LocalCluster, Client, Future
-from sinagot.models import Record, RunManager
+from sinagot.models import Model, Record, RunManager
 from sinagot.config import ConfigurationError
 
 
@@ -55,129 +53,119 @@ class DaskRunManager(RunManager):
             self.cluster.close()
 
     def _run(self, records):
-        # futures = {
-        #     ("tasks", record.id): self.dask_futures(self.record_structure(record))
-        #     for record in records
-        # }
+        graph = DaskGraph(self.dataset)
+        graph.build(records)
+        return graph.dsk
 
-        # from pprint import pprint
 
-        # pprint(self.record_structure(list(records)[0]))
+class DaskGraph(Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dsk = {}
 
-        records = list(records)
+    @staticmethod
+    def group(*args):
+        pass
 
-        def run_tasks(*args):
-            pass
-
-        def run_modalities(*args):
-            pass
-
-        def run_step(*args):
-            print(("run_step", *args))
-            return ("run_step", *args)
-
-        graph = dict()
-
+    def build(self, records):
         for record in records:
-            tasks = self.record_structure(record)
-            record_tasks = []
-            for task_name, modalities in tasks.items():
-                task_modalities = []
-                task_key = record.id + "-" + task_name
-                record_tasks.append(("run_modalities", task_key))
-                for modality, steps in modalities.items():
-                    steps.reverse()
-                    prev_step = steps.pop(0)
-                    last_step_label = prev_step["step_label"]
-                    modality_key = task_key + "-" + modality
-                    task_modalities.append((last_step_label, modality_key))
-                    prev_step_key = modality_key  # + "--" + last_step_label
-                    graph[(last_step_label, prev_step_key)] = (
-                        run_step,
-                        ("run_modalities", "step_input"),
-                    )
-                    for step in steps:
-                        step_key = modality_key + "--" + step["step_label"]
-                        graph[(prev_step["step_label"], prev_step_key)] = (
-                            run_step,
-                            (step["step_label"], step_key),
-                        )
-                        prev_step_key = step_key
+            task_outs = []
+            if record.task:
+                tasks = [record]
+            else:
+                tasks = record.iter_tasks()
+            for task in tasks:
+                mod_outs = []
+                for modality in task.iter_modalities():
+                    step = None
+                    prev_step = "raw"
+                    params = {
+                        "record_id": modality.id,
+                        "task": modality.task,
+                        "modality": modality.modality,
+                    }
+                    for step in modality.steps.scripts_names():
+                        target = self.add_step(prev_step, step, **params)
                         prev_step = step
-                    graph[(prev_step["step_label"], prev_step_key)] = (
-                        run_step,
-                        ("raw_data", step_key),
+                    if step:
+                        mod_outs.extend(target)
+                task_outs.append(
+                    self.add_edge(
+                        mod_outs,
+                        self.group,
+                        ("task", "{record_id}-{task}".format(**params)),
                     )
-                graph[("run_modalities", task_key)] = (
-                    run_modalities,
-                    *task_modalities,
                 )
-            graph[("run_tasks", record.id)] = (
-                run_tasks,
-                *record_tasks,
+            self.add_edge(
+                task_outs, self.group, ("record", "{record_id}".format(**params))
             )
 
-        return graph
+    def add_edge(self, sources, func, target):
+        graph = self.dsk
+        graph.update({target: (func, *sources)})
+        self.dsk = graph
+        return target
 
-        # all_runs = dask.delayed(futures)
-        # # all_runs.compute()
-        # return all_runs
+    def add_step(self, source, target, **kwargs):
 
-    def dask_futures(self, target, label=None):
-        if isinstance(target, dict):
-            return self.dask_parallel_futures(target, label=label)
+        script = self.get_script(**kwargs, step_label=target)
+        func = self.run_step_factory(script, step_label=target)
+
+        path_in = script.path.input
+        if isinstance(path_in, dict):
+            path_ins = path_in.values()
         else:
-            return self.dask_steps_future(target)
+            path_ins = (path_in,)
+        keys_in = tuple((source, self.format_path(p)) for p in path_ins)
+        path_out = script.path.output
+        if isinstance(path_out, dict):
+            out_keys = path_out.keys()
+            key_out = (target, *out_keys)
+            res = []
+            for out_value in path_out.values():
+                res_item = (target, self.format_path(out_value))
+                self.add_edge(
+                    ((target, *out_keys),), self.split_out, res_item,
+                )
+                res.append(res_item)
 
-    def dask_parallel_futures(self, collection, label=None):
-        def func(*args):
-            return args
+        else:
+            key_out = (target, self.format_path(path_out))
+            res = (key_out,)
+        self.add_edge(keys_in, func, key_out)
+        return res
 
-        return {
-            "RS": [("func", "some"), ("func", "some_chose")],
-            "MMN": [("func", "other"),],
-        }
+    def format_path(self, path):
+        return str(path.relative_to(self.dataset.data_path))
 
-        # if label:
-        #     func.__name__ = label
-        #     if label == "tasks":
-        #         label = "modalities"
-        # return dask.delayed(func)(
-        #     self.dask_futures(item, label=label) for item in collection.values()
-        # )
+    @staticmethod
+    def split_out(*args):
+        pass
 
-    def dask_steps_future(self, collection):
+    @staticmethod
+    def get_path(script, direction):
+        path = getattr(script.path, direction)
+        if isinstance(path, Path):
+            path = {"data": path}
+        return path
 
-        delayed = None
-        for item in collection:
-            delayed = dask.delayed(self.run_step_factory(item))(delayed)
-        return delayed
+    def run_step_factory(self, script, step_label):
+        def func(*args, **kwargs):
+            # to_run = kwargs.get("step_label") == step_label
+            to_run = True
+            if to_run:
+                script._run()
+                # script._run(**kwargs)
+                # return arg
 
-    ########################
+        func.__name__ = step_label
+        return func
 
-    def _run_(self, records):
-
-        futures = [
-            self.dask_futures(self.record_structure(record)) for record in records
-        ]
-
-        asynchronous = self.dask_config.get("asynchronous", False)
-        return self.client.gather(futures, asynchronous=asynchronous)
-
-    def dask_parallel_futures_(self, collection):
-        def func(*args):
-            return args
-
-        return self.client.map(
-            func, [self.dask_futures(item) for item in collection.values()]
+    def get_script(self, record_id, task, modality, step_label):
+        script_class = self._get_module("Script", modality, step_label)
+        return script_class(
+            data_path=self.dataset.data_path,
+            id_=record_id,
+            task=task,
+            logger_namespace=self.logger.name,
         )
-
-    def dask_steps_future_(self, collection):
-
-        future = None
-
-        for item in collection:
-            func = self.run_step_factory(item)
-            future = self.client.submit(func, future)
-
-        return future
