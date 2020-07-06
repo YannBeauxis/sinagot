@@ -1,5 +1,7 @@
 from pathlib import Path
-from dask.distributed import LocalCluster, Client, Future
+from dask import visualize
+from dask.delayed import Delayed
+from dask.distributed import LocalCluster, Client, fire_and_forget
 from sinagot.models import Model, Record, RunManager
 from sinagot.config import ConfigurationError
 
@@ -17,28 +19,29 @@ class DaskRunManager(RunManager):
         # self.init_scheduler()
 
     def init_scheduler(self):
-        mode = self.scheduler_config.pop("mode", "local")
-        scheduler_config = self.scheduler_config
-        for key, default_value in (
-            ("dashboard_address", None),
-            ("scheduler_port", 8786),
-        ):
-            scheduler_config[key] = scheduler_config.get(key, default_value)
-        if mode == "local":
-            try:
-                self.cluster = LocalCluster(**self.scheduler_config)
-                self.scheduler_address = self.cluster.scheduler_address
-            except OSError:
-                self.scheduler_address = "127.0.0.1: " + str(
-                    scheduler_config["scheduler_port"]
-                )
-        elif mode == "distributed":
-            self.scheduler_address = scheduler_config["scheduler_address"]
-        else:
-            raise ConfigurationError("{} model is not enable for dask".format(mode))
+        # mode = self.scheduler_config.pop("mode", "local")
+        # scheduler_config = self.scheduler_config
+        # for key, default_value in (
+        #     ("dashboard_address", None),
+        #     ("scheduler_port", 8786),
+        # ):
+        #     scheduler_config[key] = scheduler_config.get(key, default_value)
+        # if mode == "local":
+        #     try:
+        self.cluster = LocalCluster(**self.scheduler_config)
+        #         self.scheduler_address = self.cluster.scheduler_address
+        #     except OSError:
+        #         self.scheduler_address = "127.0.0.1: " + str(
+        #             scheduler_config["scheduler_port"]
+        #         )
+        # elif mode == "distributed":
+        # self.scheduler_address = scheduler_config["scheduler_address"]
+        # else:
+        #     raise ConfigurationError("{} model is not enable for dask".format(mode))
 
     def _init_client(self):
-        self._client = Client(self.scheduler_address)
+        # self._client = Client(self.scheduler_address)
+        self._client = Client(self.cluster)
 
     @property
     def client(self):
@@ -52,10 +55,17 @@ class DaskRunManager(RunManager):
         if self.cluster:
             self.cluster.close()
 
+    def visualize(self, records, **kwargs):
+        graph = DaskGraph(self.dataset)
+        graph.build(records)
+        return visualize(graph.dsk, **kwargs)
+
     def _run(self, records):
         graph = DaskGraph(self.dataset)
         graph.build(records)
-        return graph.dsk
+        for rec in records:
+            dl = Delayed(("record", rec.id), graph.dsk)
+            fire_and_forget(self.client.compute(dl))
 
 
 class DaskGraph(Model):
@@ -109,7 +119,7 @@ class DaskGraph(Model):
     def add_step(self, source, target, **kwargs):
 
         script = self.get_script(**kwargs, step_label=target)
-        func = self.run_step_factory(script, step_label=target)
+        func = self.run_step_factory(**kwargs, step_label=target)
 
         path_in = script.path.input
         if isinstance(path_in, dict):
@@ -149,7 +159,15 @@ class DaskGraph(Model):
             path = {"data": path}
         return path
 
-    def run_step_factory(self, script, step_label):
+    def run_step_factory(self, record_id, task, modality, step_label):
+        script_class = self._get_module("Script", modality, step_label)
+        script = script_class(
+            data_path=self.dataset.data_path,
+            id_=record_id,
+            task=task,
+            logger_namespace=self.logger.name,
+        )
+
         def func(*args, **kwargs):
             # to_run = kwargs.get("step_label") == step_label
             to_run = True
