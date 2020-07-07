@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from typing import Generator
 import pandas as pd
+from sinagot.utils import get_module
 from sinagot.models import ModelWithStepCollection, Scope, Record, RecordUnit
 
 
@@ -86,6 +87,21 @@ class RecordCollectionUnit(ModelWithStepCollection):
         for record_id in self.iter_ids():
             return self.get(record_id)
 
+    def head(self, count=5) -> "Record":
+        """
+        Get the first record found.
+        
+        Returns:
+            Record instance
+        """
+
+        idx = 0
+        for record_id in self.iter_ids():
+            yield self.get(record_id)
+            idx += 1
+            if idx > count:
+                break
+
     def get(self, record_id: str) -> "Record":
         """
         Get record by ID.
@@ -151,8 +167,8 @@ class RecordCollection(RecordCollectionUnit, Scope):
         if modality is not None:
             try:
                 class_name = self.config["modalities"][modality]["models"]["record"]
-                self._record_class = self._get_module(
-                    class_name, modality, "models", "record"
+                self._record_class = get_module(
+                    self.dataset, class_name, modality, "models", "record"
                 )
             except KeyError:
                 pass

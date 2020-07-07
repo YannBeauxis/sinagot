@@ -1,8 +1,5 @@
 # coding=utf-8
 
-from pathlib import Path
-from importlib import import_module, util as importutil
-
 
 class Model:
     """Base class for every model except scripts"""
@@ -37,20 +34,3 @@ class Model:
 
     def _get_repr_attributes(self):
         return self._REPR_ATTRIBUTES
-
-    def _get_module(self, class_name, *args):
-        """Import a module from scripts folder"""
-
-        path = Path(self.dataset._scripts_path, *args)
-        spec = importutil.spec_from_file_location(
-            ".".join(args[-3:]), path.with_suffix(".py")
-        )
-        module = importutil.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return getattr(module, class_name)
-
-    @staticmethod
-    def _get_plugin_modules(plugin_model):
-
-        plugin = import_module("sinagot.plugins.models." + plugin_model)
-        return getattr(plugin, "MODELS")

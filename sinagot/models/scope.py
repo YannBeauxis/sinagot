@@ -3,6 +3,7 @@
 from importlib import import_module
 from typing import Optional, Generator
 import pandas as pd
+from sinagot.utils import get_module, get_plugin_modules
 from sinagot.models import Model
 
 
@@ -112,7 +113,7 @@ class Scope(Model):
 
             plugin_model = sub_config.get("plugin")
             if plugin_model:
-                return cls._get_plugin_modules(plugin_model)[model_type]
+                return get_plugin_modules(plugin_model)[model_type]
         return cls
 
     @classmethod
@@ -120,8 +121,8 @@ class Scope(Model):
         model_type = cls._MODEL_TYPE
         base_class_name = model_type.title().replace("_", "")
         try:
-            custom_class = dataset._get_module(
-                base_class_name, value, "models", model_type
+            custom_class = get_module(
+                dataset, base_class_name, value, "models", model_type
             )
         except FileNotFoundError:
             return None
