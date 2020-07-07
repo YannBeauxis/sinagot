@@ -57,12 +57,19 @@ class ScriptTemplate:
         file_handler = logging.FileHandler(file_handler_path)
         file_formatter = JSONFormatter()
         file_handler.setFormatter(file_formatter)
+        file_handler.addFilter(self.log_filter_factory())
         self._logger_file_handler = file_handler
         logger_ = logging.getLogger(self._logger_namespace)
         logger_.setLevel(logging.INFO)
         self._logger = logger_
         logger = logging.LoggerAdapter(logger_, self._log_extra(StepStatus.PROCESSING))
         self.logger = logger
+
+    def log_filter_factory(self):
+        record_id = self.id
+        def record_filter(record):
+            return record.__dict__[LOG_RECORD_ID] == record_id
+        return record_filter
 
     def _log_extra(self, status):
         return {

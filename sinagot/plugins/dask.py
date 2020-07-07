@@ -9,7 +9,7 @@ from sinagot.config import ConfigurationError
 class DaskRunManager(RunManager):
     """Manage multiple run in sequential or parallel mode"""
 
-    cluster = None
+    _cluster = None
     _client = None
 
     def __init__(self, dataset):
@@ -18,17 +18,20 @@ class DaskRunManager(RunManager):
         self.scheduler_config = self.dask_config.get("scheduler", {})
         # self.init_scheduler()
 
-    def init_scheduler(self):
-        # mode = self.scheduler_config.pop("mode", "local")
-        # scheduler_config = self.scheduler_config
+    def _init_cluster(self):
+        print("_init_cluster")
+        scheduler_config = self.scheduler_config
+        mode = scheduler_config.pop("mode", "local")
+
         # for key, default_value in (
         #     ("dashboard_address", None),
         #     ("scheduler_port", 8786),
         # ):
         #     scheduler_config[key] = scheduler_config.get(key, default_value)
-        # if mode == "local":
-        #     try:
-        self.cluster = LocalCluster(**self.scheduler_config)
+        if mode == "local":
+            print("mode == local")
+            # try:
+            self._cluster = LocalCluster(**self.scheduler_config)
         #         self.scheduler_address = self.cluster.scheduler_address
         #     except OSError:
         #         self.scheduler_address = "127.0.0.1: " + str(
@@ -44,16 +47,21 @@ class DaskRunManager(RunManager):
         self._client = Client(self.cluster)
 
     @property
+    def cluster(self):
+        if not self._cluster:
+            self._init_cluster()
+
+    @property
     def client(self):
         if not self._client:
             self._init_client()
         return self._client
 
     def close(self):
-        if self.client:
-            self.client.close()
-        if self.cluster:
-            self.cluster.close()
+        if self._client:
+            self._client.close()
+        if self._cluster:
+            self._cluster.close()
 
     def visualize(self, records, **kwargs):
         graph = DaskGraph(self.dataset)
@@ -61,11 +69,15 @@ class DaskRunManager(RunManager):
         return visualize(graph.dsk, **kwargs)
 
     def _run(self, records):
-        graph = DaskGraph(self.dataset)
-        graph.build(records)
-        for rec in records:
-            dl = Delayed(("record", rec.id), graph.dsk)
+        records = list(records)
+        for record in records:
+            graph = DaskGraph(self.dataset)
+            graph.build(record)
+            visualize(graph.dsk, filename=r"{}.svg".format(record.id))
+            # print(graph.dsk)
+            dl = Delayed(("record", record.id), graph.dsk)
             fire_and_forget(self.client.compute(dl))
+
 
 
 class DaskGraph(Model):
@@ -77,38 +89,42 @@ class DaskGraph(Model):
     def group(*args):
         pass
 
-    def build(self, records):
-        for record in records:
-            task_outs = []
-            if record.task:
-                tasks = [record]
+    def build(self, record):
+        # for record in records:
+        task_outs = []
+        if record.task:
+            tasks = [record]
+        else:
+            tasks = record.iter_tasks()
+        for task in tasks:
+            mod_outs = []
+            if task.modality:
+                modalities = [task]
             else:
-                tasks = record.iter_tasks()
-            for task in tasks:
-                mod_outs = []
-                for modality in task.iter_modalities():
-                    step = None
-                    prev_step = "raw"
-                    params = {
-                        "record_id": modality.id,
-                        "task": modality.task,
-                        "modality": modality.modality,
-                    }
-                    for step in modality.steps.scripts_names():
-                        target = self.add_step(prev_step, step, **params)
-                        prev_step = step
-                    if step:
-                        mod_outs.extend(target)
-                task_outs.append(
-                    self.add_edge(
-                        mod_outs,
-                        self.group,
-                        ("task", "{record_id}-{task}".format(**params)),
-                    )
+                modalities = task.iter_modalities()
+            for modality in modalities:
+                step = None
+                prev_step = "raw"
+                params = {
+                    "record_id": modality.id,
+                    "task": modality.task,
+                    "modality": modality.modality,
+                }
+                for step in modality.steps.scripts_names():
+                    target = self.add_step(prev_step, step, **params)
+                    prev_step = step
+                if step:
+                    mod_outs.extend(target)
+            task_outs.append(
+                self.add_edge(
+                    mod_outs,
+                    self.group,
+                    ("task", "{record_id}-{task}".format(**params)),
                 )
-            self.add_edge(
-                task_outs, self.group, ("record", "{record_id}".format(**params))
             )
+        self.add_edge(
+            task_outs, self.group, ("record", "{record_id}".format(**params))
+        )
 
     def add_edge(self, sources, func, target):
         graph = self.dsk
@@ -129,11 +145,11 @@ class DaskGraph(Model):
         keys_in = tuple((source, self.format_path(p)) for p in path_ins)
         path_out = script.path.output
         if isinstance(path_out, dict):
-            out_keys = path_out.keys()
+            out_keys =  [self.format_path(out_value) for out_value in path_out.values()]
             key_out = (target, *out_keys)
             res = []
-            for out_value in path_out.values():
-                res_item = (target, self.format_path(out_value))
+            for out_value in out_keys:
+                res_item = (target, out_value)
                 self.add_edge(
                     ((target, *out_keys),), self.split_out, res_item,
                 )
