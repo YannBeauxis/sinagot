@@ -35,11 +35,11 @@ class ScriptTemplate:
     logger = None
     modality = None
 
-    def __init__(self, data_path, id_, task, opts={}, logger_namespace=None):
+    def __init__(self, data_path, record_id, task, opts={}, logger_namespace=None):
 
         self.status = StepStatus.INIT
         self.data_path = data_path
-        self.id = id_
+        self.id = record_id
         self.task = task
         module_split = self.__class__.__module__.split(".")
         if len(module_split) > 1:
@@ -57,12 +57,21 @@ class ScriptTemplate:
         file_handler = logging.FileHandler(file_handler_path)
         file_formatter = JSONFormatter()
         file_handler.setFormatter(file_formatter)
+        file_handler.addFilter(self.log_filter_factory())
         self._logger_file_handler = file_handler
         logger_ = logging.getLogger(self._logger_namespace)
         logger_.setLevel(logging.INFO)
         self._logger = logger_
         logger = logging.LoggerAdapter(logger_, self._log_extra(StepStatus.PROCESSING))
         self.logger = logger
+
+    def log_filter_factory(self):
+        record_id = self.id
+
+        def record_filter(record):
+            return record.__dict__[LOG_RECORD_ID] == record_id
+
+        return record_filter
 
     def _log_extra(self, status):
         return {
@@ -106,7 +115,7 @@ class ScriptTemplate:
         if not all(self.data_exist.input.values()):
             missing = [key for key, value in self.data_exist.input.items()]
             self._log_status(
-                "Input data  %s not available", StepStatus.DATA_NOT_AVIABLE, missing
+                "Input data  %s not available", StepStatus.DATA_NOT_AVAILABLE, missing
             )
         elif not self._has_to_run(force):
             self._log_status("Run already processed", StepStatus.DONE)
@@ -161,6 +170,6 @@ class ScriptTemplate:
         if force:
             return True
         for path in self._iter_paths("output"):
-            if (not path.exists()) or path.read_text() == "":
+            if not path.exists():
                 return True
         return False

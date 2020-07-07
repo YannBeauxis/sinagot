@@ -9,11 +9,11 @@ from sinagot.models import (
     RecordCollectionUnit,
     Record,
     RecordUnit,
-    RunManager,
     Model,
 )
 from sinagot.config import ConfigurationError
 from sinagot.logger import logger_factory
+from sinagot.run_manager import RunManager
 
 try:
     from sinagot.plugins.dask import DaskRunManager

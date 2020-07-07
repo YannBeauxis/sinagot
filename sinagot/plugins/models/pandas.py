@@ -1,13 +1,14 @@
 # coding=utf-8
 
 import pandas as pd
+from sinagot.utils import get_plugin_modules
 from sinagot.models import Record, RecordCollection
 
 
 class SeriesRecord(Record):
     @property
     def series(self):
-        collection_class = self._get_plugin_modules("pandas")["record_collection"]
+        collection_class = get_plugin_modules("pandas")["record_collection"]
         collection = collection_class(
             self.dataset, task=self.task, modality=self.modality
         )

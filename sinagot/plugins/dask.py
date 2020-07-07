@@ -1,45 +1,63 @@
-import json
-import asyncio
-from dask.distributed import LocalCluster, Client, Future
-from sinagot.models import Record, RunManager
+from pathlib import Path
+from dask import visualize
+from dask.delayed import Delayed
+from dask.distributed import LocalCluster, Client, fire_and_forget
+from sinagot.utils import get_module, get_script
+from sinagot.run_manager import RunManager
 from sinagot.config import ConfigurationError
+from sinagot.run_manager import run_step_factory
 
 
 class DaskRunManager(RunManager):
     """Manage multiple run in sequential or parallel mode"""
 
-    cluster = None
-    _client = None
-
     def __init__(self, dataset):
         super().__init__(dataset)
         self.dask_config = dataset.config.get("dask", {})
-        self.scheduler_config = self.dask_config.get("scheduler", {})
         self.init_scheduler()
 
     def init_scheduler(self):
-        mode = self.scheduler_config.pop("mode", "local")
-        scheduler_config = self.scheduler_config
-        for key, default_value in (
-            ("dashboard_address", None),
-            ("scheduler_port", 8786),
-        ):
-            scheduler_config[key] = scheduler_config.get(key, default_value)
-        if mode == "local":
-            try:
-                self.cluster = LocalCluster(**self.scheduler_config)
-                self.scheduler_address = self.cluster.scheduler_address
-            except OSError:
-                self.scheduler_address = "127.0.0.1: " + str(
-                    scheduler_config["scheduler_port"]
-                )
-        elif mode == "distributed":
-            self.scheduler_address = scheduler_config["scheduler_address"]
+        scheduler_type = self.dask_config.get("scheduler", {}).get("type", "processes")
+        if scheduler_type == "distributed":
+            cluster_config = self.dask_config.get("cluster", {})
+            self.scheduler = DaskDistributedScheduler(cluster_config)
         else:
-            raise ConfigurationError("{} model is not enable for dask".format(mode))
+            self.scheduler = DaskLocalScheduler(scheduler_type)
 
-    def _init_client(self):
-        self._client = Client(self.scheduler_address)
+    def visualize(self, records, **kwargs):
+        graph = DaskGraph(self.dataset)
+        graph.build(records)
+        return visualize(graph.dsk, **kwargs)
+
+    def _run(self, records, run_opts):
+        for record in records:
+            graph = DaskGraph(self.dataset)
+            graph.build(record, run_opts)
+            dl = Delayed(("record", record.id), graph.dsk)
+            return self.scheduler.compute(dl)
+
+
+class DaskLocalScheduler:
+    def __init__(self, scheduler):
+        self.scheduler = scheduler
+
+    def compute(self, operation):
+        return operation.compute(scheduler=self.scheduler)
+
+    def close(self):
+        pass
+
+
+class DaskDistributedScheduler:
+
+    _cluster = None
+    _client = None
+
+    def __init__(self, cluster_config):
+        self.cluster_config = cluster_config
+
+    def compute(self, operation):
+        fire_and_forget(self.client.compute(operation))
 
     @property
     def client(self):
@@ -47,41 +65,126 @@ class DaskRunManager(RunManager):
             self._init_client()
         return self._client
 
-    def _run(self, records):
+    def _init_client(self):
+        self._client = Client(self.cluster)
 
-        futures = [
-            self.dask_futures(self.record_structure(record)) for record in records
-        ]
+    @property
+    def cluster(self):
+        if not self._cluster:
+            self._init_cluster()
+        return self._cluster
 
-        asynchronous = self.dask_config.get("asynchronous", False)
-        return self.client.gather(futures, asynchronous=asynchronous)
+    def _init_cluster(self):
+        cluster_config = self.cluster_config
+        address = cluster_config.pop("address", None)
+        if address:
+            self._cluster = address
+        else:
+            self._cluster = LocalCluster(**cluster_config)
 
     def close(self):
-        if self.client:
-            self.client.close()
-        if self.cluster:
-            self.cluster.close()
+        if self._client:
+            self._client.close()
+        if self._cluster:
+            self._cluster.close()
 
-    def dask_futures(self, target):
-        if isinstance(target, dict):
-            return self.dask_parallel_futures(target)
+
+class DaskGraph:
+    def __init__(self, dataset):
+        self.dataset = dataset
+        self.dsk = {}
+
+    @staticmethod
+    def group(*args):
+        pass
+
+    def build(self, record, run_opts=None):
+        # for record in records:
+        task_outs = []
+        if record.task:
+            tasks = [record]
         else:
-            return self.dask_steps_future(target)
+            tasks = record.iter_tasks()
+        for task in tasks:
+            mod_outs = []
+            if task.modality:
+                modalities = [task]
+            else:
+                modalities = task.iter_modalities()
+            for modality in modalities:
+                step = None
+                prev_step = "raw"
+                params = {
+                    "record_id": modality.id,
+                    "task": modality.task,
+                    "modality": modality.modality,
+                }
+                for step in modality.steps.scripts_names():
+                    target = self.add_step(prev_step, step, **params, run_opts=run_opts)
+                    prev_step = step
+                if step:
+                    mod_outs.extend(target)
+            task_outs.append(
+                self.add_edge(
+                    mod_outs,
+                    self.group,
+                    ("task", "{record_id}-{task}".format(**params)),
+                )
+            )
+        self.add_edge(task_outs, self.group, ("record", "{record_id}".format(**params)))
 
-    def dask_parallel_futures(self, collection):
-        def func(*args):
-            return args
+    def add_edge(self, sources, func, target):
+        graph = self.dsk
+        graph.update({target: (func, *sources)})
+        self.dsk = graph
+        return target
 
-        return self.client.map(
-            func, [self.dask_futures(item) for item in collection.values()]
-        )
+    def add_step(self, source, target, record_id, task, modality, run_opts):
 
-    def dask_steps_future(self, collection):
+        step_params = {
+            "dataset": self.dataset,
+            "record_id": record_id,
+            "task": task,
+            "modality": modality,
+        }
 
-        future = None
+        func = run_step_factory(**step_params, step_label=target, run_opts=run_opts)
 
-        for item in collection:
-            func = self.run_step_factory(item)
-            future = self.client.submit(func, future)
+        script = get_script(**step_params, step_label=target)
+        path_in = script.path.input
+        if isinstance(path_in, dict):
+            path_ins = path_in.values()
+        else:
+            path_ins = (path_in,)
+        keys_in = tuple((source, self.format_path(p)) for p in path_ins)
+        path_out = script.path.output
+        if isinstance(path_out, dict):
+            out_keys = [self.format_path(out_value) for out_value in path_out.values()]
+            key_out = (target, *out_keys)
+            res = []
+            for out_value in out_keys:
+                res_item = (target, out_value)
+                self.add_edge(
+                    ((target, *out_keys),), self.split_out, res_item,
+                )
+                res.append(res_item)
 
-        return future
+        else:
+            key_out = (target, self.format_path(path_out))
+            res = (key_out,)
+        self.add_edge(keys_in, func, key_out)
+        return res
+
+    def format_path(self, path):
+        return str(path.relative_to(self.dataset.data_path))
+
+    @staticmethod
+    def split_out(*args):
+        pass
+
+    @staticmethod
+    def get_path(script, direction):
+        path = getattr(script.path, direction)
+        if isinstance(path, Path):
+            path = {"data": path}
+        return path

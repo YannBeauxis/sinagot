@@ -5,7 +5,7 @@ from typing import Optional
 from pathlib import Path
 import pandas as pd
 from sinagot.models import Model
-from sinagot.utils import StepStatus, LOG_STEP_LABEL, LOG_STEP_STATUS
+from sinagot.utils import StepStatus, LOG_STEP_LABEL, LOG_STEP_STATUS, get_module
 from sinagot.models.exceptions import NotFoundError, NoModalityError
 
 
@@ -25,7 +25,9 @@ class Step(Model):
             label = script.__class__.__name__
         elif isinstance(script, str):
             try:
-                script_class = self._get_module("Script", *self._scripts_folder, script)
+                script_class = get_module(
+                    self.dataset, "Script", *self._scripts_folder, script
+                )
             except FileNotFoundError as ex:
                 raise NotFoundError from ex
             label = script
@@ -36,7 +38,7 @@ class Step(Model):
         self.script_class = script_class
         self.script = script_class(
             data_path=self.dataset.data_path,
-            id_=self.id,
+            record_id=self.id,
             task=self.task,
             logger_namespace=self.logger.name,
         )
