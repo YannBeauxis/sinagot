@@ -113,7 +113,7 @@ class ScriptTemplate:
         self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
         if not all(self.data_exist.input.values()):
-            missing = [key for key, value in self.data_exist.input.items()]
+            missing = [key for key, exist in self.data_exist.input.items() if not exist]
             self._log_status(
                 "Input data  %s not available", StepStatus.DATA_NOT_AVAILABLE, missing
             )

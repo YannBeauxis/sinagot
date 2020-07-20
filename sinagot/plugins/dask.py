@@ -34,7 +34,7 @@ class DaskRunManager(RunManager):
             graph = DaskGraph(self.dataset)
             graph.build(record, run_opts)
             dl = Delayed(("record", record.id), graph.dsk)
-            return self.scheduler.compute(dl)
+            self.scheduler.compute(dl)
 
 
 class DaskLocalScheduler:

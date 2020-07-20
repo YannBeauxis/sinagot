@@ -7,4 +7,5 @@ import pytest
 def test_log_only_record(dataset):
     dataset.steps.run()
     for record in dataset.records.all():
-        assert list(record.logs().record_id.unique()) == [record.id]
+        ids = record.logs().record_id.unique()
+        assert list(ids) == [record.id]

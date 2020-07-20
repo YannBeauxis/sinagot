@@ -1,5 +1,4 @@
-from sinagot.utils import get_module, get_script
-from sinagot.models import Step, Record
+from sinagot.utils import get_script
 
 
 class RunManager:
