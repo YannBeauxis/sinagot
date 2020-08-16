@@ -79,14 +79,24 @@ class Step(Model):
         if isinstance(path, dict):
             return all([p.exists() for p in path.values()])
 
-    def run(self, force: Optional[bool] = False, debug: Optional[bool] = False):
+    def run(
+        self,
+        force: Optional[bool] = False,
+        ignore_missing: Optional[bool] = False,
+        debug: Optional[bool] = False,
+    ):
         """
         Run the step script.
         
         Args:
             force: Force run and overwrites result file(s) if already exist(s).
         """
-        self.model.steps.run(step_label=self.label, force=force, debug=debug)
+        self.model.steps.run(
+            step_label=self.label,
+            force=force,
+            ignore_missing=ignore_missing,
+            debug=debug,
+        )
 
     def logs(self) -> pd.DataFrame:
         """

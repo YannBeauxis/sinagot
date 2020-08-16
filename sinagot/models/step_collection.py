@@ -139,6 +139,7 @@ class StepCollection(StepCollectionUnit):
         self,
         step_label: Optional[str] = None,
         force: Optional[bool] = False,
+        ignore_missing: Optional[bool] = False,
         debug: Optional[bool] = False,
     ):
         """Run all steps of the scope.
@@ -151,7 +152,11 @@ class StepCollection(StepCollectionUnit):
 
         dataset = self.dataset
         return dataset._run_manager.run(
-            self.model, step_label=step_label, force=force, debug=debug
+            self.model,
+            step_label=step_label,
+            force=force,
+            ignore_missing=ignore_missing,
+            debug=debug,
         )
 
     def status(self) -> pd.DataFrame:

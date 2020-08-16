@@ -20,6 +20,19 @@ def test_run_force(dataset):
 @pytest.mark.parametrize(
     "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
 )
+def test_run_ignore_missing(dataset):
+    rec = dataset.behavior.get("REC-200320-Z")
+    out_path = rec.steps.get("scores_norm").script.path.output
+    rec.steps.run()
+    assert not out_path.exists()
+    rec.steps.run(ignore_missing=True)
+    assert out_path.exists()
+    assert out_path.read_text() == "no input"
+
+
+@pytest.mark.parametrize(
+    "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
+)
 def test_run_step_label(dataset):
     rec = dataset.behavior.get("REC-200320-A")
     out_path = rec.steps.get("scores_norm").script.path.output

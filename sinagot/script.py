@@ -106,13 +106,15 @@ class ScriptTemplate:
             rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path_unit
         )
 
-    def _run(self, force: bool = False, debug: bool = False):
+    def _run(
+        self, force: bool = False, ignore_missing: bool = False, debug: bool = False
+    ):
         """Required run function. Called by step model :code:`run()` method."""
 
         self._init_logger()
         self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
-        if not all(self.data_exist.input.values()):
+        if not all(self.data_exist.input.values()) and not ignore_missing:
             missing = [key for key, exist in self.data_exist.input.items() if not exist]
             self._log_status(
                 "Input data  %s not available", StepStatus.DATA_NOT_AVAILABLE, missing

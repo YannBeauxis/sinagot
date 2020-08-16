@@ -9,4 +9,8 @@ class Script(ScriptTemplate):
     PATH_OUT = ("PROCESSED", "{id}", "HDC", "norm-scores.csv")
 
     def run(self):
-        self.path.output.write_text(self.path.input.read_text())
+        try:
+            text = self.path.input.read_text()
+        except:
+            text = "no input"
+        self.path.output.write_text(text)
