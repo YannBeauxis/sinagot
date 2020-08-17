@@ -40,7 +40,10 @@ def get_plugin_modules(plugin_model):
 
 
 def get_script(dataset, record_id, task, modality, step_label):
-    script_class = get_module(dataset, "Script", modality, step_label)
+    if modality:
+        script_class = get_module(dataset, "Script", modality, step_label)
+    else:
+        script_class = get_module(dataset, "Script", step_label)
     return script_class(
         data_path=dataset.data_path,
         record_id=record_id,

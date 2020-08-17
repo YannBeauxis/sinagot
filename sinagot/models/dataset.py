@@ -93,8 +93,11 @@ class Dataset(Model):
         return self._scripts_path
 
     def _init_run_logger(self):
-        self.logger = logger_factory(self.config)
+        self.logger = logger_factory(self.config, self.is_unit_mode)
         """Logger of the dataset"""
+        log_path = self.data_path / "LOG"
+        if not log_path.exists():
+            log_path.mkdir()
 
     def _init_run_manager(self):
         try:

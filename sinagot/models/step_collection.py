@@ -24,6 +24,8 @@ class StepCollectionUnit(Model):
 
     _MODEL_TYPE = "step_collection"
     _STEP_CLASS = Step
+    task = None
+    modality = None
 
     def __init__(self, model):
         """
@@ -74,9 +76,75 @@ class StepCollectionUnit(Model):
         Returns:
             number of steps.
         """
+        return self._count()
 
     def _count(self):
         return len(self.scripts_names())
+
+    def run(
+        self,
+        step_label: Optional[str] = None,
+        force: Optional[bool] = False,
+        ignore_missing: Optional[bool] = False,
+        debug: Optional[bool] = False,
+    ):
+        """Run all steps of the scope.
+        
+        Args:
+            step_label: if not `None`, run only for the step with this label.
+            force: Force run and overwrites result file(s) if already exist(s).
+            debug: If False, log scripts errors and not raise them.
+        """
+
+        dataset = self.dataset
+        return dataset._run_manager.run(
+            self.model,
+            step_label=step_label,
+            force=force,
+            ignore_missing=ignore_missing,
+            debug=debug,
+        )
+
+    def status(self) -> pd.DataFrame:
+        """Get status of all steps
+
+        Returns:
+            A pandas DataFrame with a row for each step.
+        """
+        if self.model._MODEL_TYPE == "record":
+            return self._record_status()
+        elif self.model.count() == 0:
+            return pd.DataFrame([])
+        else:
+            return pd.concat([rec.steps.status() for rec in self.model.all()])
+
+    def _record_status(self):
+        if self.count():
+            return pd.DataFrame(
+                [
+                    self._record_status_unit(index, step)
+                    for index, step in zip(range(self.count()), self._modality_all(),)
+                ]
+            )
+        else:
+            return None
+
+    def _record_status_unit(self, index, step):
+        model = self.model
+        if not model.is_unit:
+            raise NotUnitError
+        return {
+            "record_id": self.model.id,
+            "task": self.task,
+            "modality": self.modality,
+            "step_index": index + 1,
+            LOG_STEP_LABEL: step.label,
+            LOG_STEP_STATUS: step.status(),
+        }
+
+    def _modality_all(self):
+        for script_name in self.scripts_names():
+            yield self.get(script_name)
 
 
 class StepCollection(StepCollectionUnit):
@@ -135,43 +203,6 @@ class StepCollection(StepCollectionUnit):
         except NotFoundError:
             return None
 
-    def run(
-        self,
-        step_label: Optional[str] = None,
-        force: Optional[bool] = False,
-        ignore_missing: Optional[bool] = False,
-        debug: Optional[bool] = False,
-    ):
-        """Run all steps of the scope.
-        
-        Args:
-            step_label: if not `None`, run only for the step with this label.
-            force: Force run and overwrites result file(s) if already exist(s).
-            debug: If False, log scripts errors and not raise them.
-        """
-
-        dataset = self.dataset
-        return dataset._run_manager.run(
-            self.model,
-            step_label=step_label,
-            force=force,
-            ignore_missing=ignore_missing,
-            debug=debug,
-        )
-
-    def status(self) -> pd.DataFrame:
-        """Get status of all steps
-
-        Returns:
-            A pandas DataFrame with a row for each step.
-        """
-        if self.model._MODEL_TYPE == "record":
-            return self._record_status()
-        elif self.model.count() == 0:
-            return pd.DataFrame([])
-        else:
-            return pd.concat([rec.steps.status() for rec in self.model.all()])
-
     def _record_status(self):
         if self.count():
             return pd.DataFrame(
@@ -185,23 +216,6 @@ class StepCollection(StepCollectionUnit):
             )
         else:
             return None
-
-    def _record_status_unit(self, index, step):
-        model = self.model
-        if not model.is_unit:
-            raise NotUnitError
-        return {
-            "record_id": self.model.id,
-            "task": self.task,
-            "modality": self.modality,
-            "step_index": index + 1,
-            LOG_STEP_LABEL: step.label,
-            LOG_STEP_STATUS: step.status(),
-        }
-
-    def _modality_all(self):
-        for script_name in self.scripts_names():
-            yield self.get(script_name)
 
     def scripts_names(self):
         if self.modality:

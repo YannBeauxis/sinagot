@@ -9,15 +9,25 @@ from sinagot.utils import (
     LOG_STEP_LABEL,
 )
 
+
+LOG_FORMAT_UNIT = "%(asctime)s | %({})s : %(message)s".format(LOG_STEP_LABEL)
+
 LOG_FORMAT = "%(asctime)s | %(task)s-%(modality)s-%({})s : %(message)s".format(
     LOG_STEP_LABEL
 )
 
 
-def logger_factory(config):
+def logger_factory(config, is_unit=False):
     """Create logger with config info"""
 
-    config = config["log"]
+    if "log" in config:
+        config = config["log"]
+    else:
+        config = {
+            "name": "sinagot",
+            "format": "%(asctime)s : %(message)s",
+            "level": "INFO",
+        }
 
     logger = logging.getLogger(config["name"])
 
@@ -36,8 +46,12 @@ def logger_factory(config):
     logger.debug("log initialized")
 
     script_handler = logging.StreamHandler(sys.stdout)
+    if is_unit:
+        log_format = LOG_FORMAT_UNIT
+    else:
+        log_format = LOG_FORMAT
     script_handler.setFormatter(
-        logging.Formatter("%({})s | ".format(LOG_RECORD_ID) + LOG_FORMAT)
+        logging.Formatter("%({})s | ".format(LOG_RECORD_ID) + log_format)
     )
     script_handler.addFilter(filter_is_script)
     logger.addHandler(script_handler)

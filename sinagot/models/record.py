@@ -31,6 +31,29 @@ class RecordUnit(ModelWithStepCollection):
         self.steps: "StepCollection" = self.set_step_collection()
         """Collection of steps."""
 
+    def _structure_status(self, columns):
+
+        df = self.steps.status()
+
+        def status_default_dict():
+            def dict_to_list():
+                return defaultdict(list)
+
+            return defaultdict(dict_to_list)
+
+        def get_status_dict(df):
+            sd = status_default_dict()
+            for row in df.itertuples():
+                sd[row.task][row.modality].append(
+                    {key: getattr(row, key) for key in columns}
+                )
+            return sd
+
+        return get_status_dict(df)
+
+    def _iter_units(self):
+        yield self
+
 
 class Record(RecordUnit, Scope):
     """
@@ -103,23 +126,3 @@ class Record(RecordUnit, Scope):
         """
 
         return json.dumps(self.status_dict())
-
-    def _structure_status(self, columns):
-
-        df = self.steps.status()
-
-        def status_default_dict():
-            def dict_to_list():
-                return defaultdict(list)
-
-            return defaultdict(dict_to_list)
-
-        def get_status_dict(df):
-            sd = status_default_dict()
-            for row in df.itertuples():
-                sd[row.task][row.modality].append(
-                    {key: getattr(row, key) for key in columns}
-                )
-            return sd
-
-        return get_status_dict(df)

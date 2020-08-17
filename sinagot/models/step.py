@@ -14,6 +14,7 @@ class Step(Model):
     _REPR_ATTRIBUTES = ["scope", "task", "modality", "label"]
     _MODEL_TYPE = "step"
     task = None
+    modality = None
 
     def __init__(self, script, model):
 

@@ -13,8 +13,9 @@ def test_step_scripts_names_shape(dataset, names_class):
 @pytest.mark.parametrize(
     "dataset", [{"workspace": "minimal_mode"}], indirect=True,
 )
-def test_step_scripts_names_minimal(dataset):
+def test_minimal_mode(dataset):
     assert dataset.steps.scripts_names() == ["first_step", "next_step"]
+    dataset.steps.run()
 
 
 def test_scripts_name_scoped(dataset):
