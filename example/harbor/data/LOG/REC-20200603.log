@@ -1,0 +1,14 @@
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:31:57.472775"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 20, "message": "Processing run", "time": "2020-08-17T15:31:57.473430"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 30, "message": "Run finished", "time": "2020-08-17T15:31:57.479554"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:31:57.481270"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 20, "message": "Processing run", "time": "2020-08-17T15:31:57.482083"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 30, "message": "Run finished", "time": "2020-08-17T15:31:57.489574"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:35:28.500839"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 30, "message": "Run already processed", "time": "2020-08-17T15:35:28.501625"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:35:28.503422"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 30, "message": "Run already processed", "time": "2020-08-17T15:35:28.504127"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:43:47.527193"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "count", "step_status": 30, "message": "Run already processed", "time": "2020-08-17T15:43:47.527876"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 0, "message": "Init run", "time": "2020-08-17T15:43:47.529019"}
+{"log_from": "script", "record_id": "REC-20200603", "scope": "record", "task": null, "modality": null, "step_label": "mean", "step_status": 30, "message": "Run already processed", "time": "2020-08-17T15:43:47.529740"}

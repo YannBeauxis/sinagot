@@ -1,5 +1,5 @@
-from sinagot.models import Dataset
+from sinagot.models import Workspace
 from .script import ScriptTemplate
 
 
-__all__ = ["Dataset", "ScriptTemplate"]
+__all__ = ["Workspace", "ScriptTemplate"]

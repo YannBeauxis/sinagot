@@ -10,7 +10,7 @@ class SeriesRecord(Record):
     def series(self):
         collection_class = get_plugin_modules("pandas")["record_collection"]
         collection = collection_class(
-            self.dataset, task=self.task, modality=self.modality
+            self.workspace, task=self.task, modality=self.modality
         )
         df = collection.dataframe
         if self.id in df.index:
@@ -34,7 +34,7 @@ class DataframeRecordCollection(RecordCollection):
     @property
     def dataframe(self):
         sub_path = self.config["modalities"][self.modality]["models"]["dataframe_path"]
-        file_path = self.dataset.data_path.joinpath(*sub_path)
+        file_path = self.workspace.data_path.joinpath(*sub_path)
         df = pd.read_csv(file_path, index_col="record_id", parse_dates=self.DATE_FIELDS)
         return df
 

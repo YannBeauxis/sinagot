@@ -12,13 +12,13 @@ from .record import RecordUnit, Record
 from .record_collection import RecordCollectionUnit, RecordCollection
 
 Subset = RecordCollection
-from .dataset import Dataset, ConfigurationError
+from .workspace import Workspace, ConfigurationError
 
 
 __all__ = [
     "Model",
     "Scope",
-    "Dataset",
+    "Workspace",
     "ConfigurationError",
     "Subset",
     "RecordCollectionUnit",

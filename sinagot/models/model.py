@@ -6,17 +6,17 @@ class Model:
 
     _REPR_ATTRIBUTES = []
     """List of instance attributes to display in __repr__"""
-    dataset = None
-    """Master dataset"""
+    workspace = None
+    """Master workspace"""
     config = None
-    """Config dic of the dataset"""
+    """Config dic of the workspace"""
     logger = None
     """Logger object"""
 
-    def __init__(self, dataset):
-        self.dataset = dataset
-        self.config = dataset.config
-        self.logger = dataset.logger
+    def __init__(self, workspace):
+        self.workspace = workspace
+        self.config = workspace.config
+        self.logger = workspace.logger
 
     def __repr__(self):
         attributes = ", ".join(

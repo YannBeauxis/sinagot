@@ -20,8 +20,7 @@ class ScriptTemplate:
         Template class for scripts
 
         Args:
-            data_path (str): Folder path of data corresponding
-                to :code:`data_path` attribute of dataset or record models.
+            data_path (str): Path to data folder.
             id_ (str): Id of the record or task to run the script.
             task (str): Taks label
     """

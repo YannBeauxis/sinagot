@@ -10,10 +10,10 @@ def test_repr_scoped(record):
         assert attr in unit.__str__()
 
 
-@pytest.mark.parametrize("dataset", [{"workspace": "minimal_mode"}], indirect=True)
-def test_repr_unit_mode(dataset):
-    assert dataset.records.__class__.__name__ == "RecordCollection"
-    record = dataset.records.first()
+@pytest.mark.parametrize("workspace", [{"workspace": "minimal_mode"}], indirect=True)
+def test_repr_unit_mode(workspace):
+    assert workspace.records.__class__.__name__ == "RecordCollection"
+    record = workspace.records.first()
     assert record.__class__.__name__ == "Record"
     for attr in ["task", "modality"]:
         assert record.is_unit

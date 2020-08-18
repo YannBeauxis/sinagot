@@ -21,10 +21,10 @@ def record_log_file_path(data_path, rec_id):
     return data_path / "LOG" / "{}.log".format(rec_id)
 
 
-def get_module(dataset, class_name, *args):
+def get_module(workspace, class_name, *args):
     """Import a module from scripts folder"""
 
-    path = Path(dataset._scripts_path, *args)
+    path = Path(workspace._scripts_path, *args)
     spec = importutil.spec_from_file_location(
         ".".join(args[-3:]), path.with_suffix(".py")
     )
@@ -39,14 +39,14 @@ def get_plugin_modules(plugin_model):
     return getattr(plugin, "MODELS")
 
 
-def get_script(dataset, record_id, task, modality, step_label):
+def get_script(workspace, record_id, task, modality, step_label):
     if modality:
-        script_class = get_module(dataset, "Script", modality, step_label)
+        script_class = get_module(workspace, "Script", modality, step_label)
     else:
-        script_class = get_module(dataset, "Script", step_label)
+        script_class = get_module(workspace, "Script", step_label)
     return script_class(
-        data_path=dataset.data_path,
+        data_path=workspace.data_path,
         record_id=record_id,
         task=task,
-        logger_namespace=dataset.logger.name,
+        logger_namespace=workspace.logger.name,
     )

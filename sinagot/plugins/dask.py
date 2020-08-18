@@ -11,9 +11,9 @@ from sinagot.run_manager import run_step_factory
 class DaskRunManager(RunManager):
     """Manage multiple run in sequential or parallel mode"""
 
-    def __init__(self, dataset):
-        super().__init__(dataset)
-        self.dask_config = dataset.config.get("dask", {})
+    def __init__(self, workspace):
+        super().__init__(workspace)
+        self.dask_config = workspace.config.get("dask", {})
         self.init_scheduler()
 
     def init_scheduler(self):
@@ -25,13 +25,13 @@ class DaskRunManager(RunManager):
             self.scheduler = DaskLocalScheduler(scheduler_type)
 
     def visualize(self, records, **kwargs):
-        graph = DaskGraph(self.dataset)
+        graph = DaskGraph(self.workspace)
         graph.build(records)
         return visualize(graph.dsk, **kwargs)
 
     def _run(self, records, run_opts):
         for record in records:
-            graph = DaskGraph(self.dataset)
+            graph = DaskGraph(self.workspace)
             graph.build(record, run_opts)
             dl = Delayed(("record", record.id), graph.dsk)
             self.scheduler.compute(dl)
@@ -90,8 +90,8 @@ class DaskDistributedScheduler:
 
 
 class DaskGraph:
-    def __init__(self, dataset):
-        self.dataset = dataset
+    def __init__(self, workspace):
+        self.workspace = workspace
         self.dsk = {}
 
     @staticmethod
@@ -142,7 +142,7 @@ class DaskGraph:
     def add_step(self, source, target, record_id, task, modality, run_opts):
 
         step_params = {
-            "dataset": self.dataset,
+            "workspace": self.workspace,
             "record_id": record_id,
             "task": task,
             "modality": modality,
@@ -176,7 +176,7 @@ class DaskGraph:
         return res
 
     def format_path(self, path):
-        return str(path.relative_to(self.dataset.data_path))
+        return str(path.relative_to(self.workspace.data_path))
 
     @staticmethod
     def split_out(*args):

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "sinagot"
 version = "0.2.0"
-description = "Python library to manage data processing on a dataset."
+description = "Python library to batch scripts on a file-system workspace."
 authors = [
     "Yann Beauxis <dev@yannbeauxis.net>",
     "Guillaume Dumas <deep@introspection.eu>",

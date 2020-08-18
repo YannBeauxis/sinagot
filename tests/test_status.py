@@ -4,9 +4,9 @@ from sinagot.utils import StepStatus, LOG_STEP_LABEL, LOG_STEP_STATUS
 
 
 @pytest.mark.parametrize(
-    "dataset", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
+    "workspace", [{"run_mode": "main_process"}, {"run_mode": "dask"}], indirect=True
 )
-def test_step_status(dataset, record):
+def test_step_status(workspace, record):
 
     rec = record.HDC.behavior
     step = rec.steps.get("scores")
@@ -16,7 +16,7 @@ def test_step_status(dataset, record):
     step.run()
     assert step.status() == StepStatus.DONE
 
-    rec = dataset.records.get("REC-200320-A").HDC.EEG
+    rec = workspace.records.get("REC-200320-A").HDC.EEG
     step = rec.steps.get("preprocess")
     assert step.status() == StepStatus.PROCESSING
     step.run()

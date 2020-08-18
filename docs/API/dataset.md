@@ -1,3 +1,3 @@
-# Dataset
+# Workspace
 
-::: sinagot.Dataset
+::: sinagot.Workspace

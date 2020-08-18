@@ -2,8 +2,8 @@ import pytest
 from sinagot.models import Record
 
 
-def test_set_record_collection(dataset, records, shared_datadir):
-    assert dataset.data_path == shared_datadir / "sonetaa" / "dataset"
+def test_set_record_collection(workspace, records, shared_datadir):
+    assert workspace.data_path == shared_datadir / "sonetaa" / "dataset"
     for task in ("RS", "MMN", "HDC"):
         task_record_collection = getattr(records, task)
         assert isinstance(task_record_collection, records._subscope_class)

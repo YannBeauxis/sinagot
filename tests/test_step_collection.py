@@ -4,27 +4,29 @@ from .conftest import MODES_WORKSPACES
 
 
 @pytest.mark.parametrize(
-    "dataset,names_class", zip(MODES_WORKSPACES, (list, dict)), indirect=["dataset"],
+    "workspace,names_class",
+    zip(MODES_WORKSPACES, (list, dict)),
+    indirect=["workspace"],
 )
-def test_step_scripts_names_shape(dataset, names_class):
-    assert isinstance(dataset.records.steps.scripts_names(), names_class)
+def test_step_scripts_names_shape(workspace, names_class):
+    assert isinstance(workspace.records.steps.scripts_names(), names_class)
 
 
 @pytest.mark.parametrize(
-    "dataset", [{"workspace": "minimal_mode"}], indirect=True,
+    "workspace", [{"workspace": "minimal_mode"}], indirect=True,
 )
-def test_minimal_mode(dataset):
-    assert dataset.steps.scripts_names() == ["first_step", "next_step"]
-    dataset.steps.run()
+def test_minimal_mode(workspace):
+    assert workspace.steps.scripts_names() == ["first_step", "next_step"]
+    workspace.steps.run()
 
 
-def test_scripts_name_scoped(dataset):
-    assert dataset.HDC.behavior.steps.scripts_names() == ["scores", "scores_norm"]
-    assert dataset.behavior.steps.scripts_names() == ["scores", "scores_norm"]
-    assert dataset.HDC.EEG.steps.scripts_names() == ["preprocess"]
-    assert dataset.RS.EEG.steps.scripts_names() == ["preprocess", "alpha"]
-    assert dataset.steps
-    assert dataset.steps.scripts_names() == {
+def test_scripts_name_scoped(workspace):
+    assert workspace.HDC.behavior.steps.scripts_names() == ["scores", "scores_norm"]
+    assert workspace.behavior.steps.scripts_names() == ["scores", "scores_norm"]
+    assert workspace.HDC.EEG.steps.scripts_names() == ["preprocess"]
+    assert workspace.RS.EEG.steps.scripts_names() == ["preprocess", "alpha"]
+    assert workspace.steps
+    assert workspace.steps.scripts_names() == {
         "behavior": ["scores", "scores_norm"],
         "EEG": ["preprocess", "alpha"],
         "clinical": [],
@@ -32,24 +34,24 @@ def test_scripts_name_scoped(dataset):
     }
 
 
-def method_eval_label(dataset, method, *args):
+def method_eval_label(workspace, method, *args):
     return {
         modality: getattr(step, "label", None)
-        for modality, step in getattr(dataset.steps, method)(*args).items()
+        for modality, step in getattr(workspace.steps, method)(*args).items()
     }
 
 
 @pytest.mark.parametrize(
-    "dataset, label",
+    "workspace, label",
     zip(MODES_WORKSPACES, ("next_step", "scores")),
-    indirect=["dataset"],
+    indirect=["workspace"],
 )
-def test_get(dataset, label):
-    if dataset.is_unit_mode:
-        records = dataset
+def test_get(workspace, label):
+    if workspace.is_unit_mode:
+        records = workspace
     else:
-        records = dataset.HDC.behavior
-        assert method_eval_label(dataset, "get", label) == {
+        records = workspace.HDC.behavior
+        assert method_eval_label(workspace, "get", label) == {
             "behavior": "scores",
             "EEG": None,
             "clinical": None,
@@ -60,17 +62,17 @@ def test_get(dataset, label):
 
 
 @pytest.mark.parametrize(
-    "dataset, label",
+    "workspace, label",
     zip(MODES_WORKSPACES, ("first_step", "scores")),
-    indirect=["dataset"],
+    indirect=["workspace"],
 )
-def test_first(dataset, label):
-    if dataset.is_unit_mode:
-        assert dataset.steps.first().label == label
+def test_first(workspace, label):
+    if workspace.is_unit_mode:
+        assert workspace.steps.first().label == label
     else:
-        assert dataset.HDC.behavior.steps.first().label == label
-        assert dataset.clinical.steps.first() == None
-        assert method_eval_label(dataset, "first") == {
+        assert workspace.HDC.behavior.steps.first().label == label
+        assert workspace.clinical.steps.first() == None
+        assert method_eval_label(workspace, "first") == {
             "behavior": label,
             "EEG": "preprocess",
             "clinical": None,
@@ -79,29 +81,29 @@ def test_first(dataset, label):
 
 
 @pytest.mark.parametrize(
-    "dataset", MODES_WORKSPACES, indirect=True,
+    "workspace", MODES_WORKSPACES, indirect=True,
 )
-def test_count(dataset):
-    if dataset.is_unit_mode:
-        dataset.steps.count() == 2
+def test_count(workspace):
+    if workspace.is_unit_mode:
+        workspace.steps.count() == 2
     else:
-        assert dataset.HDC.behavior.steps.count() == 2
-        assert dataset.clinical.steps.count() == 0
-        assert dataset.steps.count() == {
+        assert workspace.HDC.behavior.steps.count() == 2
+        assert workspace.clinical.steps.count() == 0
+        assert workspace.steps.count() == {
             "behavior": 2,
             "EEG": 2,
             "clinical": 0,
             "processed": 0,
         }
-        assert dataset.RS.steps.count() == {
+        assert workspace.RS.steps.count() == {
             "EEG": 2,
             "clinical": 0,
         }
-        assert dataset.MMN.steps.count() == {
+        assert workspace.MMN.steps.count() == {
             "EEG": 1,
             "clinical": 0,
         }
-        assert dataset.HDC.steps.count() == {
+        assert workspace.HDC.steps.count() == {
             "behavior": 2,
             "EEG": 1,
             "clinical": 0,

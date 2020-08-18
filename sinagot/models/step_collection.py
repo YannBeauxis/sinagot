@@ -14,7 +14,7 @@ class ModelWithStepCollection(Model):
         """Collection of steps."""
 
     def set_step_collection(self):
-        if self.dataset.is_unit_mode:
+        if self.workspace.is_unit_mode:
             return StepCollectionUnit(self)
         return StepCollection(self)
 
@@ -32,7 +32,7 @@ class StepCollectionUnit(Model):
         Params:
             model (instance): Parent model of the collection.
         """
-        super().__init__(model.dataset)
+        super().__init__(model.workspace)
         self.model = model
 
     def scripts_names(self):
@@ -40,7 +40,7 @@ class StepCollectionUnit(Model):
 
     @property
     def _scripts_config(self):
-        return self.dataset.config.get("steps", {}).get("scripts", [])
+        return self.workspace.config.get("steps", {}).get("scripts", [])
 
     def get(self, script_name: str) -> Step:
         """find a step by script name.
@@ -96,8 +96,8 @@ class StepCollectionUnit(Model):
             debug: If False, log scripts errors and not raise them.
         """
 
-        dataset = self.dataset
-        return dataset._run_manager.run(
+        workspace = self.workspace
+        return workspace._run_manager.run(
             self.model,
             step_label=step_label,
             force=force,
@@ -227,7 +227,7 @@ class StepCollection(StepCollectionUnit):
             }
 
     def _modality_scripts_names(self):
-        mod_config = self.dataset.config["modalities"].get(self.modality, {})
+        mod_config = self.workspace.config["modalities"].get(self.modality, {})
         shared_names = mod_config.get("scripts", [])
         task_scripts = mod_config.get("task_scripts", {})
         if self.task:

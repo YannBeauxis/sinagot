@@ -29,18 +29,18 @@ class Scope(Model):
 
     def __init__(
         self,
-        dataset: "Dataset",
+        workspace: "Workspace",
         task: Optional[str] = None,
         modality: Optional[str] = None,
     ):
         """
         Args:
-            dataset: Root Dataset.
+            workspace: Root Workspace.
             task: Task of the scope.
             modality: Modality of the scope.
         """
 
-        dataset.logger.debug(
+        workspace.logger.debug(
             "## init scope for %s. _subscope_class: %s", self, self._subscope_class
         )
         if task is not None:
@@ -51,18 +51,18 @@ class Scope(Model):
             """Modality of the scope. If `None`, the scope represents all available modalities."""
         if self._subscope_class is None:
             self._subscope_class = self.__class__
-        super().__init__(dataset)
+        super().__init__(workspace)
 
     def _get_repr_attributes(self):
         attributes = super()._get_repr_attributes()
-        if not self.dataset.is_unit_mode:
+        if not self.workspace.is_unit_mode:
             attributes.extend(["task", "modality"])
         return list(set(attributes))
 
     @classmethod
-    def _set_subscopes(cls, dataset):
+    def _set_subscopes(cls, workspace):
         """Create subscope tasks and modalities attributes
-        Run once at dataset initialization"""
+        Run once at workspace initialization"""
 
         SUBSCOPES = (
             ("task", "tasks"),
@@ -70,25 +70,25 @@ class Scope(Model):
         )
 
         for subscope, collection in SUBSCOPES:
-            if collection in dataset.config:
+            if collection in workspace.config:
                 setattr(
                     cls,
                     "_{}".format(collection),
                     [
                         cls._add_subscope(
-                            subscope=subscope, value=value, dataset=dataset
+                            subscope=subscope, value=value, workspace=workspace
                         )
-                        for value in dataset.config[collection].keys()
+                        for value in workspace.config[collection].keys()
                     ],
                 )
 
     @classmethod
-    def _add_subscope(cls, subscope, value, dataset):
+    def _add_subscope(cls, subscope, value, workspace):
         """Add subscope to self.__class__ as a property
         that call an instance of local defined subclass"""
 
         _subscope_class = cls._search_custom_subscope_in_config(
-            subscope, value, dataset
+            subscope, value, workspace
         )
         subscope_access = property(
             cls._property_factory(_subscope_class, subscope, value)
@@ -99,15 +99,15 @@ class Scope(Model):
         return value
 
     @classmethod
-    def _search_custom_subscope_in_config(cls, subscope, value, dataset):
+    def _search_custom_subscope_in_config(cls, subscope, value, workspace):
         model_type = cls._MODEL_TYPE
         if subscope == "modality":
 
-            sub_config = dataset.config
+            sub_config = workspace.config
             for key in ("modalities", value, "models"):
                 sub_config = sub_config.get(key, {})
 
-            custom_class = cls._get_custom_class(dataset, value)
+            custom_class = cls._get_custom_class(workspace, value)
             if custom_class:
                 return custom_class
 
@@ -117,18 +117,20 @@ class Scope(Model):
         return cls
 
     @classmethod
-    def _get_custom_class(cls, dataset, value):
+    def _get_custom_class(cls, workspace, value):
         model_type = cls._MODEL_TYPE
         base_class_name = model_type.title().replace("_", "")
         try:
             custom_class = get_module(
-                dataset, base_class_name, value, "models", model_type
+                workspace, base_class_name, value, "models", model_type
             )
         except FileNotFoundError:
             return None
         custom_class.__name__ = value.title() + base_class_name
         if model_type == "record_collection":
-            record_class = custom_class._record_class._get_custom_class(dataset, value)
+            record_class = custom_class._record_class._get_custom_class(
+                workspace, value
+            )
             if record_class:
                 custom_class._record_class = record_class
         return custom_class
@@ -138,7 +140,7 @@ class Scope(Model):
         def get(self):
             if self._is_valid_subscope(subscope, value):
                 kwargs = {
-                    "dataset": self.dataset,
+                    "workspace": self.workspace,
                     "task": self.task,
                     "modality": self.modality,
                 }
@@ -157,13 +159,13 @@ class Scope(Model):
         if getattr(self, subscope) is not None:
             return False
         if subscope == "task":
-            return self.modality in self.dataset.config["tasks"][value][
+            return self.modality in self.workspace.config["tasks"][value][
                 "modalities"
             ] + [None]
         elif subscope == "modality":
             return (
                 self.task is None
-                or value in self.dataset.config["tasks"][self.task]["modalities"]
+                or value in self.workspace.config["tasks"][self.task]["modalities"]
             )
         else:
             return False

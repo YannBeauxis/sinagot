@@ -18,16 +18,16 @@ class RecordUnit(ModelWithStepCollection):
     _REPR_ATTRIBUTES = ["id"]
     _MODEL_TYPE = "record"
 
-    def __init__(self, dataset: "Dataset", record_id: str, *args, **kwargs):
+    def __init__(self, workspace: "Workspace", record_id: str, *args, **kwargs):
         """
         Args:
-            dataset: Root Dataset.
+            workspace: Root Workspace.
             record_id: ID of the record.
         """
 
         # TODO: raise exception if id not match regex in config
         self.id = record_id
-        super().__init__(dataset, *args, **kwargs)
+        super().__init__(workspace, *args, **kwargs)
         self.steps: "StepCollection" = self.set_step_collection()
         """Collection of steps."""
 
@@ -66,7 +66,7 @@ class Record(RecordUnit, Scope):
     Example:
 
     ```python
-    rec = ds.get("RECORD-ID") # ds is a Dataset instance
+    rec = ws.get("RECORD-ID") # ws is a Workspace instance
     ```
     """
 
@@ -76,7 +76,7 @@ class Record(RecordUnit, Scope):
             Logs history.
         """
 
-        log_path = record_log_file_path(self.dataset.data_path, self.id)
+        log_path = record_log_file_path(self.workspace.data_path, self.id)
         if log_path.exists():
             json = "[{}]".format(",".join(log_path.read_text().split("\n")[:-1]))
             df = pd.read_json(StringIO(json), orient="records")

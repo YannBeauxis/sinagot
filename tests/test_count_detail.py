@@ -39,7 +39,7 @@ def test_record_count_detail(record):
     eval_dataframes(expected_df, target_df, COLS)
 
 
-def test_dataset_count_detail(dataset):
+def test_dataset_count_detail(workspace):
     COUNT_VALUES = (
         ("RS", "EEG", 2),
         ("RS", "clinical", 2),
@@ -51,9 +51,9 @@ def test_dataset_count_detail(dataset):
     )
     COLS = ["task", "modality", "count"]
     expected_df = pd.DataFrame(COUNT_VALUES, columns=COLS)
-    target_df = dataset.records.count_detail()
+    target_df = workspace.records.count_detail()
     eval_dataframes(expected_df, target_df, COLS)
-    df_with_record_id = dataset.records.count_detail(with_record_id=True)
+    df_with_record_id = workspace.records.count_detail(with_record_id=True)
     assert "record_id" in df_with_record_id.columns
 
 

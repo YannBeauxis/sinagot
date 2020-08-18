@@ -1,6 +1,6 @@
 
 [path]
-    data = './dataset'
+    dataset = './dataset'
     scripts = './scripts'
 
 [log]

@@ -23,9 +23,9 @@ except ImportError:
     dask_enable = False
 
 
-class Dataset(Model):
+class Workspace(Model):
     """
-    Dataset is the main class to handle data.
+    Workspace is the main class to handle data.
     It handle all configuration information and objects non specific to a particular data as the logger.
     It can also manage the [RecordCollection](record_collection.md) of all records with `.records` property.
 
@@ -34,8 +34,8 @@ class Dataset(Model):
     Usage:
 
     ```python
-    from sinagot import Dataset
-    ds = Dataset(path/to/config.toml)
+    from sinagot import Workspace
+    ws = Workspace(path/to/config.toml)
     ```
     """
 
@@ -48,7 +48,7 @@ class Dataset(Model):
         """
         Arguments:
             config_path: path to the config file in toml.
-            data_path: path to the folder of the dataset.
+            data_path: path to the folder of the workspace.
         """
 
         super().__init__(self)
@@ -63,7 +63,7 @@ class Dataset(Model):
     def _load_config(self, config_path):
         self._config_path = Path(config_path)
         if self._config_path.is_dir():
-            self._config_path = self._config_path / "dataset.toml"
+            self._config_path = self._config_path / "workspace.toml"
         self.config = toml.load(self._config_path)
         """Config dictionnary from config file."""
         self.is_unit_mode = not any(
@@ -72,7 +72,7 @@ class Dataset(Model):
 
     def _set_data_path(self, data_path):
         if data_path is None:
-            data_path = self.config["path"].get("data", self._config_path)
+            data_path = self.config["path"].get("dataset", self._config_path)
         self._data_path = self._resolve_path(data_path)
 
     @property
@@ -94,7 +94,7 @@ class Dataset(Model):
 
     def _init_run_logger(self):
         self.logger = logger_factory(self.config, self.is_unit_mode)
-        """Logger of the dataset"""
+        """Logger of the workspace"""
         log_path = self.data_path / "LOG"
         if not log_path.exists():
             log_path.mkdir()
@@ -131,12 +131,12 @@ class Dataset(Model):
 
     @property
     def records(self) -> RecordCollection:
-        """RecordCollection of all records of the dataset"""
+        """RecordCollection of all records of the workspace"""
         return self._records
 
     @property
     def steps(self) -> "StepCollection":
-        """StepCollecion for all steps of the dataset"""
+        """StepCollecion for all steps of the workspace"""
         return self._records.steps
 
     def _init_records(self):

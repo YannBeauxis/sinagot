@@ -4,8 +4,8 @@ from sinagot.utils import get_script
 class RunManager:
     """Manage multiple run in sequential or parallel mode"""
 
-    def __init__(self, dataset):
-        self.dataset = dataset
+    def __init__(self, workspace):
+        self.workspace = workspace
 
     def run(self, model, **run_opts):
 
@@ -31,15 +31,15 @@ class RunManager:
                             key: step[key]
                             for key in ("record_id", "task", "modality", "step_label")
                         }
-                        run_step_factory(self.dataset, **step_kw, run_opts=run_opts)()
+                        run_step_factory(self.workspace, **step_kw, run_opts=run_opts)()
 
     def close(self):
         pass
 
 
-def run_step_factory(dataset, record_id, task, modality, step_label, run_opts):
+def run_step_factory(workspace, record_id, task, modality, step_label, run_opts):
     script = get_script(
-        dataset=dataset,
+        workspace=workspace,
         record_id=record_id,
         task=task,
         modality=modality,

@@ -25,7 +25,7 @@ class ProcessedRecord(Record):
         return GETTERS[getter_label]
 
     def get_processed_data(self, data_key):
-        params = self.dataset.config[self._CONFIG_PROCESSED_LABEL][data_key]
+        params = self.workspace.config[self._CONFIG_PROCESSED_LABEL][data_key]
         path = self._get_raw_path(params)
         if not path.exists():
             return pd.DataFrame()
@@ -35,7 +35,7 @@ class ProcessedRecord(Record):
 
     def _get_raw_path(self, params):
         record = Record(
-            self.dataset,
+            self.workspace,
             record_id=self.id,
             task=params["task"],
             modality=params["modality"],

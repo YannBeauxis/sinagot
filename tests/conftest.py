@@ -1,12 +1,12 @@
 import toml
 import pytest
-from sinagot import Dataset
+from sinagot import Workspace
 
 MODES_WORKSPACES = [{"workspace": "minimal_mode"}, {"workspace": "sonetaa"}]
 
 
 @pytest.fixture
-def dataset(shared_datadir, request, change_run_mode):
+def workspace(shared_datadir, request, change_run_mode):
 
     workspace = getattr(request, "param", {"workspace": "sonetaa"}).get(
         "workspace", "sonetaa"
@@ -15,12 +15,12 @@ def dataset(shared_datadir, request, change_run_mode):
     # Change config to run mode
     run_mode = getattr(request, "param", None) and request.param.get("run_mode")
     if run_mode:
-        config_path = shared_datadir / workspace / "dataset.toml"
+        config_path = shared_datadir / workspace / "workspace.toml"
         change_run_mode(config_path, run_mode)
 
-    ds = Dataset(shared_datadir / workspace)
-    yield ds
-    ds.close()
+    ws = Workspace(shared_datadir / workspace)
+    yield ws
+    ws.close()
 
 
 @pytest.fixture
@@ -49,10 +49,10 @@ def ID():
 
 
 @pytest.fixture
-def records(dataset, ID):
-    return dataset.records
+def records(workspace, ID):
+    return workspace.records
 
 
 @pytest.fixture
-def record(dataset, ID):
-    return dataset.records.get(ID)
+def record(workspace, ID):
+    return workspace.records.get(ID)

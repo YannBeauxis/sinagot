@@ -32,7 +32,7 @@ class RecordCollectionUnit(ModelWithStepCollection):
             else:
                 path_tuple = path_raw
 
-            root_path = Path(self.dataset.data_path)
+            root_path = Path(self.workspace.data_path)
             raw_pattern = Path(*path_tuple)
             glob_pattern = str(self._glob_pattern(raw_pattern))
             re_pattern = re.compile(str(root_path / self._re_pattern(raw_pattern)))
@@ -113,7 +113,7 @@ class RecordCollectionUnit(ModelWithStepCollection):
             Record instance
         """
 
-        return self._record_class(dataset=self.dataset, record_id=record_id,)
+        return self._record_class(workspace=self.workspace, record_id=record_id,)
 
     def has(self, record_id: str) -> bool:
         """
@@ -153,7 +153,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
 
     ```python
     # access record_collection of all EEG records (EEG is a task)
-    sub = ds.EEG  # ds is a Dataset instance
+    sub = ws.EEG  # ws is a Workspace instance
     ```
     """
 
@@ -168,7 +168,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
             try:
                 class_name = self.config["modalities"][modality]["models"]["record"]
                 self._record_class = get_module(
-                    self.dataset, class_name, modality, "models", "record"
+                    self.workspace, class_name, modality, "models", "record"
                 )
             except KeyError:
                 pass
@@ -180,7 +180,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
         Returns:
             Record ID.
         """
-        # TODO: use dataset cache for ids
+        # TODO: use workspace cache for ids
         if self.is_unit:
             for record_id in super().iter_ids():
                 yield record_id
@@ -204,7 +204,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
         """
 
         return self._record_class(
-            dataset=self.dataset,
+            workspace=self.workspace,
             record_id=record_id,
             task=self.task,
             modality=self.modality,

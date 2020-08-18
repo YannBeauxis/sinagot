@@ -19,7 +19,7 @@ class Step(Model):
     def __init__(self, script, model):
 
         self.model = model
-        super().__init__(model.dataset)
+        super().__init__(model.workspace)
 
         if inspect.isclass(script):
             script_class = script
@@ -27,7 +27,7 @@ class Step(Model):
         elif isinstance(script, str):
             try:
                 script_class = get_module(
-                    self.dataset, "Script", *self._scripts_folder, script
+                    self.workspace, "Script", *self._scripts_folder, script
                 )
             except FileNotFoundError as ex:
                 raise NotFoundError from ex
@@ -38,7 +38,7 @@ class Step(Model):
 
         self.script_class = script_class
         self.script = script_class(
-            data_path=self.dataset.data_path,
+            data_path=self.workspace.data_path,
             record_id=self.id,
             task=self.task,
             logger_namespace=self.logger.name,
