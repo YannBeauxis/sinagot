@@ -23,24 +23,13 @@ Sinagot main class is build around the `sinagot.Workspace` class. To create an i
 - A data folder.
 - A scripts fodler.
 
-<img src="docs/dataset_structure.svg" width="200">
+<img src="docs/workspace_structure.svg" width="200">
 
-Data are structured as a collection of **records**. A record is identified by an unique ID but many files can be generated for a single record. Those files are processed with **scripts** which generate other files as results.
+Dataset is structured as a collection of **records**. A record is identified by an unique ID but many files can be generated for a single record. Those files are processed with **scripts** which generate other files as results.
 
-> The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA :
-> https://research.pasteur.fr/en/project/sonetaa/ .
-> 
-> For documentation purpose SoNeTAA workspace structure will be used as example. 
+## Simple example 
 
-## Demo with minimal example 
-
-## Demo with SoNeTAA example 
-
-On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
-for example `"REC-200331-A"`. 
-
-For a record, 3 tasks are performed: `"RS"`, `"MMN"` and `"HDC"`,
-2 main modalities handle data for every tasks: `"EEG"` and `"clinical"`, and a third one `"behavior"` exists only for HDC.
+You can find in "example" folder of the git the "harbor" workspace that has a record per day of a harboer occupancy.
 
 ### Create a Workspace instance
 
@@ -49,10 +38,6 @@ Import Workspace class
 ```python
 >>> from sinagot import Workspace
 ```
-
-A `Workspace` instance needs 3 things: 
-
-
 
 To instantiate a workspace use the config file path as argument:
 
@@ -113,10 +98,32 @@ Or for a single record:
 2020-03-31 16:06:57,314 : Step run finished
 ```
 
+## More complex example with SoNeTAA
+
+You can handle more complexity of dataset structure with **task** and **modality** concepts. During a recording session for a single record, data can be generate for differents task and each task can generate different kind of data called **modality**. 
+
+> The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA :
+> https://research.pasteur.fr/en/project/sonetaa/ .
+> 
+> For documentation purpose SoNeTAA workspace structure will be used as example. 
+
+On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
+for example `"REC-200331-A"`. 
+
+For a record, 3 tasks are performed: 
+
+* "RS" for Resting State
+* "MMN" for MisMatch Negativity
+* "HDC" for Human Dynamic Clamp.
+
+3 modalities handle data depending of the tasks
+* For each tasks, "EEG" modality create data from ElectroEncephalogram .
+* A "behavior" modality create date only for HDC task.
+* A "clinical" modality handle data used for every task.
+
 ### Explore by task or modality
 
-Each dataset or record has **subscopes** corresponding to their tasks and modalities
-simply accessible by self attributes with the scope name.
+Each record collection or single record has **subscopes** corresponding to their tasks and modalities accessible as attribute.
 
 For example to select only the task RS of the dataset:
 
