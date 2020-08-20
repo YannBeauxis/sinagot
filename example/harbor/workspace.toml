@@ -1,6 +1,6 @@
 
 [path]
-    data = './data'
+    dataset = './dataset'
     scripts = './scripts'
 
 [records]

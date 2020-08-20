@@ -23,57 +23,43 @@ Sinagot main class is build around the `sinagot.Workspace` class. To create an i
 - A data folder.
 - A scripts fodler.
 
-<img src="docs/workspace_structure.svg" width="200">
+<img src="docs/workspace_structure.png" width="200">
 
 Dataset is structured as a collection of **records**. A record is identified by an unique ID but many files can be generated for a single record. Those files are processed with **scripts** which generate other files as results.
 
-## Simple example 
+## Basic example 
 
-You can find in "example" folder of the git the "harbor" workspace that has a record per day of a harboer occupancy.
+### Harbor workspace
 
-### Create a Workspace instance
+You can find in "example" folder of the git the [harbor](https://github.com/YannBeauxis/sinagot/tree/master/example/harbor) workspace that has a record per day of a harbor occupancy. In this example, a record is created each day to count the boats that occupy the harbor. The record ID include a timestamp for the day of recording.
 
-Import Workspace class
+In Unix environment, you can that type this to get the workspace :
 
-```python
->>> from sinagot import Workspace
+```bash
+wget -qO- https://github.com/YannBeauxis/sinagot/raw/master/example/harbor.tar.gz | tar xvz
 ```
-
-To instantiate a workspace use the config file path as argument:
-
-```python
->>> ws = Workspace('/path/to/conf')
->>> ws
-<Workspace instance | task: None, modality: None>
-```
-
-> Be sure that workspace path and scripts path are correctly set in the config file
 
 ### Explore records
 
 You can list all records ids:
 
 ```python
->>> for id in ws.records.iter_ids():
-...     print(id)
-...
-REC-200331-A
-REC-200331-B
+>>> list(ws.records.iter_ids())
+['REC-20200602', 'REC-20200603', 'REC-20200601']
 ```
 
 Create a `Record` instance. For a specific record:
 
 ```python
->>> rec = ws.records.get('REC-200331-A')
->>> rec
-<Record instance | id: REC-200331-A, task: None, modality: None>
+>>> ws.records.get('REC-20200603')
+<Record instance | id: REC-20200603>
 ```
 
 Or the first record found:
 
 ```python
 >>> ws.records.first()
-<Record instance | id: REC-200331-B, task: None, modality: None>
+<Record instance | id: REC-20200602>
 ```
 
 > Records are not sort by their ids.
@@ -84,18 +70,26 @@ You can run all scripts for each record of the dataset:
 
 ```python
 >>> ws.steps.run()
-2020-03-31 16:03:58,869 : Begin step run
+REC-20200602 | 2020-08-20 11:19:11,530 | count : Init run
+REC-20200602 | 2020-08-20 11:19:11,531 | count : Processing run
+REC-20200602 | 2020-08-20 11:19:11,556 | count : Run finished
 ...
-2020-03-31 16:03:58,869 : Step run finished
+REC-20200601 | 2020-08-20 11:19:11,625 | mean : Init run
+REC-20200601 | 2020-08-20 11:19:11,626 | mean : Processing run
+REC-20200601 | 2020-08-20 11:19:11,634 | mean : Run finished
+
 ```
 
 Or for a single record:
 
 ```python
->>> rec.steps.run()
-2020-03-31 16:06:57,313 : Begin step run
-...
-2020-03-31 16:06:57,314 : Step run finished
+>>> ws.records.get('REC-20200603').steps.run()
+REC-20200603 | 2020-08-20 11:28:32,588 | count : Init run
+REC-20200603 | 2020-08-20 11:28:32,590 | count : Processing run
+REC-20200603 | 2020-08-20 11:28:32,616 | count : Run finished
+REC-20200603 | 2020-08-20 11:28:32,619 | mean : Init run
+REC-20200603 | 2020-08-20 11:28:32,621 | mean : Processing run
+REC-20200603 | 2020-08-20 11:28:32,637 | mean : Run finished
 ```
 
 ## More complex example with SoNeTAA
@@ -120,6 +114,18 @@ For a record, 3 tasks are performed:
 * For each tasks, "EEG" modality create data from ElectroEncephalogram .
 * A "behavior" modality create date only for HDC task.
 * A "clinical" modality handle data used for every task.
+
+
+### Create a Workspace instance
+
+Import Workspace class
+
+```python
+>>> from sinagot import Workspace
+>>> ws = Workspace('/path/to/sonetaa/workspace/folder')
+>>> ws
+<Workspace instance>
+```
 
 ### Explore by task or modality
 

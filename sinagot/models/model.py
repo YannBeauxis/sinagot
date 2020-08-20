@@ -19,14 +19,18 @@ class Model:
         self.logger = workspace.logger
 
     def __repr__(self):
-        attributes = ", ".join(
-            [
-                "{label}: {value}".format(label=label, value=getattr(self, label))
-                for label in self._get_repr_attributes()
-                if hasattr(self, label)
-            ]
-        )
-        return "<{} instance | ".format(self.__class__.__name__) + attributes + ">"
+        attributes = self._get_repr_attributes()
+        if self._REPR_ATTRIBUTES:
+            attributes = " | " + ", ".join(
+                [
+                    "{label}: {value}".format(label=label, value=getattr(self, label))
+                    for label in self._get_repr_attributes()
+                    if hasattr(self, label)
+                ]
+            )
+        else:
+            attributes = ""
+        return "<{} instance{}>".format(self.__class__.__name__, attributes)
 
     @property
     def is_unit(self) -> bool:

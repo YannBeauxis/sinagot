@@ -56,8 +56,10 @@ class Scope(Model):
     def _get_repr_attributes(self):
         attributes = super()._get_repr_attributes()
         if not self.workspace.is_unit_mode:
-            attributes.extend(["task", "modality"])
-        return list(set(attributes))
+            for attribute in ["task", "modality"]:
+                if attribute not in attributes:
+                    attributes.append(attribute)
+        return attributes
 
     @classmethod
     def _set_subscopes(cls, workspace):
