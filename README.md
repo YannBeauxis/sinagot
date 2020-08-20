@@ -23,7 +23,7 @@ Sinagot main class is build around the `sinagot.Workspace` class. To create an i
 - A data folder.
 - A scripts fodler.
 
-<img src="docs/workspace_structure.png" width="200">
+<img src="https://github.com/YannBeauxis/sinagot/raw/master/docs/workspace_structure.png" width="200">
 
 Dataset is structured as a collection of **records**. A record is identified by an unique ID but many files can be generated for a single record. Those files are processed with **scripts** which generate other files as results.
 
@@ -37,6 +37,15 @@ In Unix environment, you can that type this to get the workspace :
 
 ```bash
 wget -qO- https://github.com/YannBeauxis/sinagot/raw/master/example/harbor.tar.gz | tar xvz
+```
+
+To create the workspace instance :
+
+```python
+>>> from sinagot import Workspace
+>>> ws = Workspace('/path/to/harbor/workspace/folder')
+>>> ws
+<Workspace instance>
 ```
 
 ### Explore records
@@ -92,14 +101,16 @@ REC-20200603 | 2020-08-20 11:28:32,621 | mean : Processing run
 REC-20200603 | 2020-08-20 11:28:32,637 | mean : Run finished
 ```
 
-## More complex example with SoNeTAA
+## More complex dataset
 
 You can handle more complexity of dataset structure with **task** and **modality** concepts. During a recording session for a single record, data can be generate for differents task and each task can generate different kind of data called **modality**. 
 
-> The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA :
-> https://research.pasteur.fr/en/project/sonetaa/ .
-> 
-> For documentation purpose SoNeTAA workspace structure will be used as example. 
+### SoNeTAA usecase
+
+The idea of Sinagot emerged for the data management of an EEG platform called SoNeTAA :
+https://research.pasteur.fr/en/project/sonetaa/ .
+
+For documentation purpose SoNeTAA workspace structure will be used as example. 
 
 On SoNeTAA, a record with an ID with timestamp info in this format `REC-[YYMMDD]-[A-Z]`, 
 for example `"REC-200331-A"`. 
@@ -114,18 +125,6 @@ For a record, 3 tasks are performed:
 * For each tasks, "EEG" modality create data from ElectroEncephalogram .
 * A "behavior" modality create date only for HDC task.
 * A "clinical" modality handle data used for every task.
-
-
-### Create a Workspace instance
-
-Import Workspace class
-
-```python
->>> from sinagot import Workspace
->>> ws = Workspace('/path/to/sonetaa/workspace/folder')
->>> ws
-<Workspace instance>
-```
 
 ### Explore by task or modality
 

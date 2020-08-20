@@ -1,0 +1,3 @@
+# Script
+
+::: sinagot.ScriptTemplate

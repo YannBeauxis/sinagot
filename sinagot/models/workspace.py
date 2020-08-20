@@ -25,19 +25,23 @@ except ImportError:
 
 class Workspace(Model):
     """
-    Workspace is the main class to handle data.
-    It handle all configuration information and objects non specific to a particular data as the logger.
-    It can also manage the [RecordCollection](record_collection.md) of all records with `.records` property.
-
-    It required a configuration file in `.toml` format.
+    Workspace is the main class to handle dataset and scripts. It required a configuration file in `.toml` format.
+    
+    You can access to the [RecordCollection](record_collection.md) of the dataset with `.records` property.
+    
+    You can access to the [StepCollection](step_collection.md) of the scripts with `.steps` property.
 
     Usage:
-
-    ```python
-    from sinagot import Workspace
-    ws = Workspace(path/to/config.toml)
-    ```
+        Create an instance :
+        
+            from sinagot import Workspace
+            ws = Workspace(path/to/config.toml)
     """
+
+    DEFAULT_CONFIG = {
+        "path": {"dataset": "./dataset", "scripts": "./scripts"},
+        "run": {"mode": "main_process"},
+    }
 
     def __init__(
         self,
@@ -64,7 +68,11 @@ class Workspace(Model):
         self._config_path = Path(config_path)
         if self._config_path.is_dir():
             self._config_path = self._config_path / "workspace.toml"
-        self.config = toml.load(self._config_path)
+        config = toml.load(self._config_path)
+        for section, values in self.DEFAULT_CONFIG.items():
+            if section not in config:
+                config[section] = values
+        self.config = config
         """Config dictionnary from config file."""
         self.is_unit_mode = not any(
             scope in self.config for scope in ("tasks", "modalities")

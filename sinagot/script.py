@@ -3,6 +3,7 @@
 
 import logging
 from pathlib import Path
+from typing import Optional
 from collections import namedtuple
 from json_log_formatter import JSONFormatter
 from sinagot.utils import (
@@ -17,36 +18,62 @@ from sinagot.utils import (
 
 class ScriptTemplate:
     """
-        Template class for scripts
+    Template class for scripts. You must override `PATH_IN`, `PATH_OUT` and `run()` to use it.
 
-        Args:
-            data_path (str): Path to data folder.
-            id_ (str): Id of the record or task to run the script.
-            task (str): Taks label
+    Usage:
+        From harbor example :
+
+            import pandas as pd
+            from sinagot import ScriptTemplate
+
+            class Script(ScriptTemplate):
+
+                PATH_IN = ("raw", "{id}-raw.csv")
+                PATH_OUT = ("computed", "{id}-count.csv")
+
+                def run(self):
+                    df = pd.read_csv(self.path.input)
+                    df = df.groupby("country").count()
+                    df.to_csv(self.path.output)
     """
 
     _PATH_LABELS = ["input", "output"]
     PATH_IN = ("FOLDER_IN", "{id}-{task}.in")
+    """tuple or dict of tuples to specify input path pattern"""
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
+    """tuple or dict of tuples to specify output path pattern"""
 
     _logger_file_handler = None
     _logger = None
     logger = None
     modality = None
+    """The modality label"""
 
-    def __init__(self, data_path, record_id, task, opts={}, logger_namespace=None):
+    def __init__(
+        self,
+        data_path: str,
+        record_id: str,
+        task: Optional[str] = None,
+        opts={},
+        logger_namespace: Optional[str] = None,
+    ):
 
         self.status = StepStatus.INIT
+        """
+        Status of the script during its run. Valuse are defined in sinagot.utils.StepStatus class"""
         self.data_path = data_path
+        """The path to dataset"""
         self.id = record_id
+        """The record ID"""
         self.task = task
+        """The modality label"""
         module_split = self.__class__.__module__.split(".")
         if len(module_split) > 1:
             self.modality = module_split[-2]
         self.label = module_split[-1]
-
+        "The step label"
         self.opts = opts
-
+        "Optional dict"
         self._logger_namespace = logger_namespace
 
         self._set_path()
@@ -56,7 +83,7 @@ class ScriptTemplate:
         file_handler = logging.FileHandler(file_handler_path)
         file_formatter = JSONFormatter()
         file_handler.setFormatter(file_formatter)
-        file_handler.addFilter(self.log_filter_factory())
+        file_handler.addFilter(self._log_filter_factory())
         self._logger_file_handler = file_handler
         logger_ = logging.getLogger(self._logger_namespace)
         logger_.setLevel(logging.INFO)
@@ -64,7 +91,7 @@ class ScriptTemplate:
         logger = logging.LoggerAdapter(logger_, self._log_extra(StepStatus.PROCESSING))
         self.logger = logger
 
-    def log_filter_factory(self):
+    def _log_filter_factory(self):
         record_id = self.id
 
         def record_filter(record):
@@ -140,10 +167,12 @@ class ScriptTemplate:
         self._logger.info(message, *args, extra=self._log_extra(status))
 
     def run(self):
+        """Main method called during step run."""
         self.logger.info("Running ...")
 
     @property
     def data_exist(self):
+        """Get named tuple of boolean to check if input and output data exist."""
         DataStatus = namedtuple("IOPath", self._PATH_LABELS)
         return DataStatus(*(self._path_exist(target) for target in self._PATH_LABELS))
 
