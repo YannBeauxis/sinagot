@@ -78,7 +78,7 @@ class ScriptTemplate:
 
         self._set_path()
 
-    def _init_logger(self):
+    def _init_logger(self, debug=False):
         file_handler_path = record_log_file_path(self.data_path, self.id)
         file_handler = logging.FileHandler(file_handler_path)
         file_formatter = JSONFormatter()
@@ -86,7 +86,11 @@ class ScriptTemplate:
         file_handler.addFilter(self._log_filter_factory())
         self._logger_file_handler = file_handler
         logger_ = logging.getLogger(self._logger_namespace)
-        logger_.setLevel(logging.INFO)
+        if debug:
+            log_level = logging.DEBUG
+        else:
+            log_level = logging.INFO
+        logger_.setLevel(log_level)
         self._logger = logger_
         logger = logging.LoggerAdapter(logger_, self._log_extra(StepStatus.PROCESSING))
         self.logger = logger
@@ -137,8 +141,7 @@ class ScriptTemplate:
     ):
         """Required run function. Called by step model :code:`run()` method."""
 
-        self._init_logger()
-        self._logger.addHandler(self._logger_file_handler)
+        self._init_logger(debug)
         self._log_status("Init run", StepStatus.INIT)
         if not all(self.data_exist.input.values()) and not ignore_missing:
             missing = [key for key, exist in self.data_exist.input.items() if not exist]
