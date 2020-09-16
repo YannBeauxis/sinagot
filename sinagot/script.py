@@ -43,6 +43,7 @@ class ScriptTemplate:
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
     """tuple or dict of tuples to specify output path pattern"""
 
+    debug = False
     _logger_file_handler = None
     _logger = None
     logger = None
@@ -140,8 +141,9 @@ class ScriptTemplate:
         self, force: bool = False, ignore_missing: bool = False, debug: bool = False
     ):
         """Required run function. Called by step model :code:`run()` method."""
-
+        self.debug = debug
         self._init_logger(debug)
+        self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
         if not all(self.data_exist.input.values()) and not ignore_missing:
             missing = [key for key, exist in self.data_exist.input.items() if not exist]
@@ -180,10 +182,6 @@ class ScriptTemplate:
         return DataStatus(*(self._path_exist(target) for target in self._PATH_LABELS))
 
     def _path_exist(self, target):
-        # for path in self._iter_paths(target):
-        #     if not path.exists():
-        #         return False
-        # return True
         return {path: path.exists() for path in self._iter_paths(target)}
 
     def _mkdir_output(self):
