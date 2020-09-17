@@ -43,6 +43,7 @@ class ScriptTemplate:
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
     """tuple or dict of tuples to specify output path pattern"""
 
+    debug = False
     _logger_file_handler = None
     _logger = None
     logger = None
@@ -78,7 +79,7 @@ class ScriptTemplate:
 
         self._set_path()
 
-    def _init_logger(self):
+    def _init_logger(self, debug=False):
         file_handler_path = record_log_file_path(self.data_path, self.id)
         file_handler = logging.FileHandler(file_handler_path)
         file_formatter = JSONFormatter()
@@ -86,7 +87,11 @@ class ScriptTemplate:
         file_handler.addFilter(self._log_filter_factory())
         self._logger_file_handler = file_handler
         logger_ = logging.getLogger(self._logger_namespace)
-        logger_.setLevel(logging.INFO)
+        if debug:
+            log_level = logging.DEBUG
+        else:
+            log_level = logging.INFO
+        logger_.setLevel(log_level)
         self._logger = logger_
         logger = logging.LoggerAdapter(logger_, self._log_extra(StepStatus.PROCESSING))
         self.logger = logger
@@ -136,8 +141,8 @@ class ScriptTemplate:
         self, force: bool = False, ignore_missing: bool = False, debug: bool = False
     ):
         """Required run function. Called by step model :code:`run()` method."""
-
-        self._init_logger()
+        self.debug = debug
+        self._init_logger(debug)
         self._logger.addHandler(self._logger_file_handler)
         self._log_status("Init run", StepStatus.INIT)
         if not all(self.data_exist.input.values()) and not ignore_missing:
@@ -177,10 +182,6 @@ class ScriptTemplate:
         return DataStatus(*(self._path_exist(target) for target in self._PATH_LABELS))
 
     def _path_exist(self, target):
-        # for path in self._iter_paths(target):
-        #     if not path.exists():
-        #         return False
-        # return True
         return {path: path.exists() for path in self._iter_paths(target)}
 
     def _mkdir_output(self):

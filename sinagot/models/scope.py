@@ -40,9 +40,6 @@ class Scope(Model):
             modality: Modality of the scope.
         """
 
-        workspace.logger.debug(
-            "## init scope for %s. _subscope_class: %s", self, self._subscope_class
-        )
         if task is not None:
             self.task: Optional[str] = task
             """Task of the scope. If `None`, the scope represents all available tasks."""
