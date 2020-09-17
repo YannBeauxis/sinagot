@@ -28,7 +28,7 @@ class ProcessedRecord(Record):
         params = self.workspace.config[self._CONFIG_PROCESSED_LABEL][data_key]
         path = self._get_raw_path(params)
         if not path.exists():
-            return pd.DataFrame()
+            return pd.DataFrame(columns=params.get("columns"))
         getter_label = params.get(self._DATA_GETTER_LABEL, "single_data")
         getter = self._data_getters(getter_label)
         return getter(self, path, params).set_index("record_id")
@@ -71,6 +71,9 @@ class ProcessedRecord(Record):
 
     def _get_series_from_csv(self, path, params=None):
         data = pd.read_csv(path, header=None, index_col=0).transpose()
+        columns = params.get("columns")
+        if columns:
+            data = data.reindex(columns=columns)
         data = self._add_record_id_to_dataframe(data)
         return data
 
