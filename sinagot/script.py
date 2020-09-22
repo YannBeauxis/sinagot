@@ -118,7 +118,7 @@ class ScriptTemplate:
 
     def _set_path(self):
 
-        ScriptPath = namedtuple("IOPath", self._PATH_LABELS)
+        ScriptPath = namedtuple("IOPath", self._PATH_LABELS + ["control"])
         self.path = ScriptPath(
             input=self._get_path(self.PATH_IN),
             output=self._get_path(self.PATH_OUT),
