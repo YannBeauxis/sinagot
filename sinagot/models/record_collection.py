@@ -15,6 +15,13 @@ class RecordCollectionUnit(ModelWithStepCollection):
     _record_class = RecordUnit
     task = None
 
+    def ids(self) -> list:
+        """List of all records ids
+    
+        Returns:
+            Record ids"""
+        return list(self.iter_ids())
+
     def iter_ids(self):
         """Generator all record ids within the record_collection.
         

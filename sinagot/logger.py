@@ -59,15 +59,14 @@ def logger_factory(config, is_unit=False):
     return logger
 
 
+def get_log_origin_script(record):
+    return record.__dict__.get(LOG_ORIGIN, "script")
+
+
 def filter_no_script(record):
-    try:
-        return record.__dict__[LOG_ORIGIN] != "script"
-    except KeyError:
-        return True
+    return get_log_origin_script(record) != "script"
 
 
 def filter_is_script(record):
-    try:
-        return record.__dict__[LOG_ORIGIN] == "script"
-    except KeyError:
-        return False
+    return get_log_origin_script(record) == "script"
+

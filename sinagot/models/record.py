@@ -51,9 +51,6 @@ class RecordUnit(ModelWithStepCollection):
 
         return get_status_dict(df)
 
-    def _iter_units(self):
-        yield self
-
 
 class Record(RecordUnit, Scope):
     """

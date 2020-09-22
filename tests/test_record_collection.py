@@ -29,6 +29,7 @@ def test_custom_record_collection(records):
 
 def test_ids(records, IDS):
     assert set(records.iter_ids()) == set(IDS)
+    assert set(records.ids()) == set(IDS)
 
 
 def test_get(records, ID):
@@ -41,6 +42,11 @@ def test_first(records, IDS):
     rec = records.first()
     assert isinstance(rec, Record)
     assert rec.id in IDS
+
+
+def test_head(records):
+    for rec in records.head():
+        assert isinstance(rec, Record)
 
 
 def test_all(records, IDS):
