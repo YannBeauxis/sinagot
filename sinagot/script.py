@@ -41,6 +41,7 @@ class ScriptTemplate:
     PATH_IN = ("FOLDER_IN", "{id}-{task}.in")
     """tuple or dict of tuples to specify input path pattern"""
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
+    PATH_CONTROL = ("FOLDER_CONTROL", "{id}-{task}.control")
     """tuple or dict of tuples to specify output path pattern"""
 
     debug = False
@@ -119,7 +120,9 @@ class ScriptTemplate:
 
         ScriptPath = namedtuple("IOPath", self._PATH_LABELS)
         self.path = ScriptPath(
-            input=self._get_path(self.PATH_IN), output=self._get_path(self.PATH_OUT),
+            input=self._get_path(self.PATH_IN),
+            output=self._get_path(self.PATH_OUT),
+            control=self._get_path(self.PATH_CONTROL),
         )
 
     def _get_path(self, raw_path):
