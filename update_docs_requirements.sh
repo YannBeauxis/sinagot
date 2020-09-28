@@ -1,10 +1,12 @@
+[[ $(pwd) =~ ([a-z\-]*)$ ]]
+PACKAGE_NAME=${BASH_REMATCH[1]/-/_}
 DOCS_PATH=docs
 REQUIREMENTS_PATH=$DOCS_PATH/requirements.txt
-SINAGOT_VERSION=$(poetry run python -c 'import sinagot; print(sinagot.__version__)')
-SINAGOT_BUILD=sinagot-$SINAGOT_VERSION.tar.gz
+PACKAGE_VERSION=$(poetry run python -c "import $PACKAGE_NAME; print($PACKAGE_NAME.__version__)")
+PACKAGE_BUILD=$PACKAGE_NAME-$PACKAGE_VERSION.tar.gz
 
-poetry build
-rm $DOCS_PATH/sinagot-*.tar.gz
-cp dist/$SINAGOT_BUILD docs/$SINAGOT_BUILD
+poetry build -q
+rm $DOCS_PATH/$PACKAGE_NAME-*.tar.gz
+cp dist/$PACKAGE_BUILD docs/$PACKAGE_BUILD
 poetry export -f requirements.txt --dev --without-hashes -E dask -o $REQUIREMENTS_PATH
-echo "./docs/$SINAGOT_BUILD" >> $REQUIREMENTS_PATH
+echo "./docs/$PACKAGE_BUILD" >> $REQUIREMENTS_PATH
