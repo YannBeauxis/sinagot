@@ -6,5 +6,5 @@ SINAGOT_BUILD=sinagot-$SINAGOT_VERSION.tar.gz
 poetry build
 rm $DOCS_PATH/sinagot-*.tar.gz
 cp dist/$SINAGOT_BUILD docs/$SINAGOT_BUILD
-poetry export -f requirements.txt --dev --without-hashes -o $REQUIREMENTS_PATH
+poetry export -f requirements.txt --dev --without-hashes -E dask -o $REQUIREMENTS_PATH
 echo "./docs/$SINAGOT_BUILD" >> $REQUIREMENTS_PATH
