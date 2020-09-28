@@ -13,3 +13,4 @@ public/*
 pip-wheel-metadata
 .python-version
 dist
+.coverage

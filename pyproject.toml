@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sinagot"
-version = "0.2.3"
+version = "0.2.4"
 description = "Python library to batch scripts on a file-system workspace."
 authors = [
     "Yann Beauxis <dev@yannbeauxis.net>",
