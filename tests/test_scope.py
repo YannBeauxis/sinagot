@@ -26,11 +26,11 @@ def test_tasks(records, record):
         ("HDC", None, ("RecordCollection", "Record")),
         ("MMN", None, ("RecordCollection", "Record")),
         (None, "EEG", ("RecordCollection", "Record")),
-        (None, "clinical", ("DataframeRecordCollection", "SeriesRecord")),
+        (None, "clinical", ("PandasRecordCollection", "PandasRecord")),
         (None, "processed", ("ProcessedRecordCollection", "ProcessedRecord")),
         ("RS", "EEG", ("RecordCollection", "Record")),
         ("HDC", "behavior", ("BehaviorRecordCollection", "BehaviorRecord")),
-        ("MMN", "clinical", ("DataframeRecordCollection", "SeriesRecord")),
+        ("MMN", "clinical", ("PandasRecordCollection", "PandasRecord")),
     ],
 )
 def test_get_subscope(records, record, task, modality, class_names):

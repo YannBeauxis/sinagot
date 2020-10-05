@@ -30,10 +30,9 @@ class RecordCollectionUnit(ModelWithStepCollection):
         """
         self._ids = []
 
-        first_script = self.steps.first()
+        path_raw = self._iter_path()
 
-        if first_script:
-            path_raw = first_script.script.PATH_IN
+        if path_raw:
             if isinstance(path_raw, dict):
                 path_tuple = path_raw.values()[0]
             else:
@@ -48,6 +47,11 @@ class RecordCollectionUnit(ModelWithStepCollection):
                 record_id = self._evaluate_path(re_pattern, path)
                 if record_id:
                     yield record_id
+
+    def _iter_path(self):
+        first_script = self.steps.first()
+        if first_script:
+            return first_script.script.PATH_IN
 
     def _evaluate_path(self, re_pattern, path):
         m = re_pattern.search(str(path))
