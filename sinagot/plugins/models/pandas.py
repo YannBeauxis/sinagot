@@ -16,8 +16,7 @@ class PandasRecord(Record, PandasPath):
     def _get_data(self):
         if Path(self._data_path).exists():
             try:
-                data = pd.read_csv(self._data_path, index_col=0, header=None)
-                return data.T.iloc[0]
+                return pd.read_json(self._data_path, typ="series")
             except:
                 return None
 
@@ -26,7 +25,7 @@ class PandasRecord(Record, PandasPath):
             data = pd.Series(data)
             print("data", data)
         if isinstance(data, pd.Series):
-            data.T.to_csv(self._data_path, header=None)
+            data.T.to_json(self._data_path)
 
     data = property(_get_data, _set_data)
 
