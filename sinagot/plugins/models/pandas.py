@@ -1,8 +1,8 @@
 # coding=utf-8
 
+import json
 from pathlib import Path
 import pandas as pd
-from sinagot.utils import get_plugin_modules
 from sinagot.models import Scope, Record, RecordCollection
 
 
@@ -14,10 +14,14 @@ class PandasPath(Scope):
 
 class PandasRecord(Record, PandasPath):
     def _get_data(self):
-        if Path(self._data_path).exists():
+        data_path = Path(self._data_path)
+        if data_path.exists():
             try:
-                return pd.read_json(self._data_path, typ="series")
-            except:
+                data = json.loads(data_path.read_text())
+                data = pd.DataFrame().append(data, ignore_index=True)
+                data.index = [self.id]
+                return data.iloc[0]
+            except Exception as ex:
                 return None
 
     def _set_data(self, data):

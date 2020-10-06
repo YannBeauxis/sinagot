@@ -1,3 +1,4 @@
+import json
 import pytest
 import pandas as pd
 from sinagot.plugins.models.pandas import PandasRecord, PandasRecordCollection
@@ -7,7 +8,10 @@ from sinagot.plugins.models.pandas import PandasRecord, PandasRecordCollection
 def get_record_data(shared_datadir):
     def func(record_id):
         target_path = shared_datadir / "pandas" / "dataset" / record_id / "series.json"
-        return pd.read_json(target_path, typ="series")
+        data = json.loads(target_path.read_text())
+        data = pd.DataFrame().append(data, ignore_index=True)
+        data.index = [record_id]
+        return data.iloc[0]
 
     return func
 
@@ -17,6 +21,7 @@ def test_get_data(workspace, record, get_record_data):
     assert isinstance(record.pandas, PandasRecord)
     data = record.pandas.data
     assert isinstance(data, pd.Series)
+    assert data.name == record.id
     assert data.age == 15
     assert data.iq == 105
     target = get_record_data(record.id)
