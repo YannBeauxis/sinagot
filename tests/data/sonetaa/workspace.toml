@@ -37,7 +37,7 @@
         scripts = ['scores', 'scores_norm']
     [modalities.clinical]
         models.plugin = "pandas"
-        models.data_path = ['PROCESSED', '{id}', 'clinical.csv']
+        models.data_path = ['PROCESSED', '{id}', 'clinical.json']
     [modalities.processed]
         models.plugin = "processed"
 

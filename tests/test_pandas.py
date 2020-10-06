@@ -6,8 +6,8 @@ from sinagot.plugins.models.pandas import PandasRecord, PandasRecordCollection
 @pytest.fixture
 def get_record_data(shared_datadir):
     def func(record_id):
-        target_path = shared_datadir / "pandas" / "dataset" / record_id / "series.csv"
-        return pd.read_csv(target_path, index_col=0, header=None).T.iloc[0]
+        target_path = shared_datadir / "pandas" / "dataset" / record_id / "series.json"
+        return pd.read_json(target_path, typ="series")
 
     return func
 

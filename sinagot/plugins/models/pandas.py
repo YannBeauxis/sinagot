@@ -54,18 +54,9 @@ class PandasRecordCollection(RecordCollection, PandasPath):
     @property
     def data(self):
         return pd.DataFrame({rec.id: rec.data for rec in self.all()}).T
-        # sub_path = self.config["modalities"][self.modality]["models"]["dataframe_path"]
-        # file_path = self.workspace.data_path.joinpath(*sub_path)
-        # df = pd.read_csv(file_path, index_col="record_id", parse_dates=self.DATE_FIELDS)
-        # return df
 
     def _iter_path(self):
         return self._data_raw_path
-
-    # def iter_ids(self):
-    #     """Return the list of all records ids in dataframe"""
-
-    #     return list(self.dataframe.index)
 
 
 MODELS = {"record": PandasRecord, "record_collection": PandasRecordCollection}

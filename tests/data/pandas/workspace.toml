@@ -16,8 +16,7 @@
     [modalities.pandas]
         [modalities.pandas.models]
             plugin = "pandas"
-            data_path = ['{id}', 'series.csv']
-            # dataframe_path = ['CLINICAL', 'data.csv']
+            data_path = ['{id}', 'series.json']
 
 [tasks]
     [tasks.base]
