@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 from collections import namedtuple
 from json_log_formatter import JSONFormatter
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 from sinagot.utils import (
     record_log_file_path,
     LOG_ORIGIN,
@@ -82,7 +83,9 @@ class ScriptTemplate:
 
     def _init_logger(self, debug=False):
         file_handler_path = record_log_file_path(self.data_path, self.id)
-        file_handler = logging.FileHandler(file_handler_path)
+        file_handler = ConcurrentRotatingFileHandler(
+            file_handler_path, "a", 512 * 1024, 5
+        )
         file_formatter = JSONFormatter()
         file_handler.setFormatter(file_formatter)
         file_handler.addFilter(self._log_filter_factory())

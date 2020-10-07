@@ -1,7 +1,15 @@
 """Test record log file un JSON"""
 
+import json
 import pandas as pd
 from sinagot.utils import StepStatus, LOG_STEP_STATUS
+
+
+def test_log_json(record):
+    record.steps.run()
+    log_json = record.logs_json()
+    assert isinstance(log_json, list)
+    assert len(log_json) > 0
 
 
 def test_log_no_empty(record):

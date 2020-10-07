@@ -3,6 +3,7 @@
 import json
 from collections import defaultdict
 from io import StringIO
+import json_lines
 import pandas as pd
 from sinagot.models import ModelWithStepCollection, Scope
 from sinagot.utils import (
@@ -67,13 +68,23 @@ class Record(RecordUnit, Scope):
     ```
     """
 
+    @property
+    def _log_path(self):
+        return record_log_file_path(self.workspace.data_path, self.id)
+
+    def logs_json(self):
+        log_path = self._log_path
+        with open(log_path, "rb") as file_object:
+            data = json_lines.reader(file_object)
+            return list(data)
+
     def logs(self) -> pd.DataFrame:
         """
         Returns:
             Logs history.
         """
 
-        log_path = record_log_file_path(self.workspace.data_path, self.id)
+        log_path = self._log_path
         if log_path.exists():
             json = "[{}]".format(",".join(log_path.read_text().split("\n")[:-1]))
             df = pd.read_json(StringIO(json), orient="records")
