@@ -38,6 +38,11 @@ class Workspace(Model):
             ws = Workspace(path/to/config.toml)
     """
 
+    _record_unit_class = RecordUnit
+    _record_class = Record
+    _record_collection_unit_class = RecordCollectionUnit
+    _record_collection_class = RecordCollection
+
     DEFAULT_CONFIG = {
         "path": {"dataset": "./dataset", "scripts": "./scripts"},
         "run": {"mode": "main_process"},
@@ -150,13 +155,13 @@ class Workspace(Model):
     def _init_records(self):
 
         if self.is_unit_mode:
-            RecordCollectionUnit.__name__ = "RecordCollection"
-            RecordUnit.__name__ = "Record"
-            self._records = RecordCollectionUnit(self)
+            self._record_collection_unit_class.__name__ = "RecordCollection"
+            self._record_unit_class.__name__ = "Record"
+            self._records = self._record_collection_unit_class(self)
         else:
-            self._records = RecordCollection(self)
-            RecordCollection._set_subscopes(self)
-            Record._set_subscopes(self)
+            self._records = self._record_collection_class(self)
+            self._record_collection_class._set_subscopes(self)
+            self._record_class._set_subscopes(self)
             self._alias_subscopes()
 
     def _alias_subscopes(self):
