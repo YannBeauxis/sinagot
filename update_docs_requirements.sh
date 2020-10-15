@@ -3,6 +3,7 @@ PACKAGE_NAME=${BASH_REMATCH[1]/-/_}
 DOCS_PATH=docs
 REQUIREMENTS_PATH=$DOCS_PATH/requirements.txt
 PACKAGE_VERSION=$(poetry run python -c "import $PACKAGE_NAME; print($PACKAGE_NAME.__version__)")
+echo "version $PACKAGE_VERSION"
 PACKAGE_BUILD=$PACKAGE_NAME-$PACKAGE_VERSION.tar.gz
 
 poetry build -q
