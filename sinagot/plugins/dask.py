@@ -176,7 +176,12 @@ class DaskGraph:
         return res
 
     def format_path(self, path):
-        return str(path.relative_to(self.workspace.data_path))
+        try:
+            path = path.relative_to(self.workspace.data_path)
+        except ValueError:
+            pass
+        return str(path)
+        # return path.relative_to(self.workspace.data_path)
 
     @staticmethod
     def split_out(*args):
