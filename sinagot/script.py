@@ -154,16 +154,16 @@ class ScriptTemplate:
         self.debug = debug
         self._init_logger(debug)
         self._logger.addHandler(self._logger_file_handler)
-        self._log_status("Init run", StepStatus.INIT)
+        self._log_status("Init run", StepStatus.INIT, debug=True)
         if not all(self.data_exist.input.values()) and not ignore_missing:
             missing = [
                 str(key) for key, exist in self.data_exist.input.items() if not exist
             ]
             self._log_status(
-                "Input data  %s not available", StepStatus.DATA_NOT_AVAILABLE, missing
+                "Input data %s not available", StepStatus.DATA_NOT_AVAILABLE, missing,
             )
         elif not self._has_to_run(force):
-            self._log_status("Run already processed", StepStatus.DONE)
+            self._log_status("Run already processed", StepStatus.DONE, debug=True)
         else:
             self.status = StepStatus.PROCESSING
             self._log_status("Processing run", StepStatus.PROCESSING)
@@ -180,8 +180,13 @@ class ScriptTemplate:
 
         return True
 
-    def _log_status(self, message, status, *args):
-        self._logger.info(message, *args, extra=self._log_extra(status))
+    def _log_status(
+        self, message, status, args=[], debug=False,
+    ):
+        if debug:
+            self._logger.debug(message, *args, extra=self._log_extra(status))
+        else:
+            self._logger.info(message, *args, extra=self._log_extra(status))
 
     def run(self):
         """Main method called during step run."""
