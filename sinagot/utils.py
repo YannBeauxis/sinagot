@@ -5,6 +5,7 @@ LOG_ORIGIN = "log_from"
 LOG_STEP_LABEL = "step_label"
 LOG_RECORD_ID = "record_id"
 LOG_STEP_STATUS = "step_status"
+LOG_VERSION = "workspace_version"
 
 
 class StepStatus:
@@ -49,4 +50,5 @@ def get_script(workspace, record_id, task, modality, step_label):
         record_id=record_id,
         task=task,
         logger_namespace=workspace.logger.name,
+        workspace_version=workspace.version,
     )

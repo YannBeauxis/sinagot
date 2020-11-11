@@ -24,6 +24,16 @@ def workspace(shared_datadir, request, change_run_mode):
 
 
 @pytest.fixture
+def custom_version_workspace(shared_datadir):
+    class CustomWorkspace(Workspace):
+        @property
+        def version(self):
+            return "0.2.0"
+
+    return CustomWorkspace(shared_datadir / "sonetaa")
+
+
+@pytest.fixture
 def change_run_mode():
     def func(config_path, run_mode):
         config = toml.load(config_path)

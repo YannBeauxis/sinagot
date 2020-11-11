@@ -13,6 +13,7 @@ from sinagot.utils import (
     LOG_STEP_LABEL,
     LOG_RECORD_ID,
     LOG_STEP_STATUS,
+    LOG_VERSION,
     StepStatus,
 )
 
@@ -59,11 +60,13 @@ class ScriptTemplate:
         task: Optional[str] = None,
         opts={},
         logger_namespace: Optional[str] = None,
+        workspace_version=None,
     ):
 
         self.status = StepStatus.INIT
         """
         Status of the script during its run. Valuse are defined in sinagot.utils.StepStatus class"""
+        self._workspace_version = workspace_version
         self.data_path = data_path
         """The path to dataset"""
         self.id = record_id
@@ -111,6 +114,7 @@ class ScriptTemplate:
     def _log_extra(self, status):
         return {
             LOG_ORIGIN: "script",
+            LOG_VERSION: self._workspace_version,
             LOG_RECORD_ID: self.id,
             "scope": "record",
             "task": self.task,

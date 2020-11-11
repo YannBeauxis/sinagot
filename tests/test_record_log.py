@@ -2,6 +2,7 @@
 
 import json
 import pandas as pd
+from sinagot import Workspace
 from sinagot.utils import StepStatus, LOG_STEP_STATUS
 
 
@@ -16,6 +17,22 @@ def test_log_no_empty(record):
 
     assert isinstance(record.logs(), pd.DataFrame)
     assert len(record.logs()) == 0
+
+
+def test_log_version(record):
+
+    record.steps.run()
+    logs = record.logs()
+    assert set(logs.workspace_version.unique()) == {"0.1.0"}
+
+
+def test_log_custom_version(custom_version_workspace, ID):
+
+    ws = custom_version_workspace
+    record = ws.records.get(ID)
+    record.steps.run()
+    logs = record.logs()
+    assert set(logs.workspace_version.unique()) == {"0.2.0"}
 
 
 def test_log_all(record):

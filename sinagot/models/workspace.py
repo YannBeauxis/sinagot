@@ -43,6 +43,7 @@ class Workspace(Model):
     _record_collection_unit_class = RecordCollectionUnit
     _record_collection_class = RecordCollection
 
+    DEFAULT_VERSION = "0.1.0"
     DEFAULT_CONFIG = {
         "path": {"dataset": "./dataset", "scripts": "./scripts"},
         "run": {"mode": "main_process"},
@@ -68,6 +69,10 @@ class Workspace(Model):
         self._init_run_logger()
         self._init_run_manager()
         self._init_records()
+
+    @property
+    def version(self):
+        return self.DEFAULT_VERSION
 
     def _load_config(self, config_path):
         self._config_path = Path(config_path)
