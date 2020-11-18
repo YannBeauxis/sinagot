@@ -1,5 +1,6 @@
 from importlib import import_module, util as importutil
 from pathlib import Path
+from functools import wraps
 
 LOG_ORIGIN = "log_from"
 LOG_STEP_LABEL = "step_label"
@@ -52,3 +53,35 @@ def get_script(workspace, record_id, task, modality, step_label):
         logger_namespace=workspace.logger.name,
         workspace_version=workspace.version,
     )
+
+
+def handle_dict(func):
+    """Decorator to apply method to all values of dict if first arg is dict"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        args = list(args)
+        arg = args.pop(0)
+        if isinstance(arg, dict):
+            return {key: func(value, *args, **kwargs) for key, value in arg.items()}
+        else:
+            return func(arg, *args, **kwargs)
+
+    return wrapper
+
+
+def handle_dict_bool(func):
+    """
+    Decorator to apply method that returns a boolean to all values of dict
+    and check if all results are True
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        result = handle_dict(func)(*args, **kwargs)
+        if isinstance(result, dict):
+            return all(result.values())
+        else:
+            return result
+
+    return wrapper
