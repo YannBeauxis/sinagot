@@ -1,11 +1,8 @@
 # coding=utf-8
 
-from typing import Optional
-from pathlib import Path
-import re
 from typing import Generator
 import pandas as pd
-from sinagot.utils import get_module
+from sinagot.utils import get_module, PathExplorer
 from sinagot.models import ModelWithStepCollection, Scope, Record, RecordUnit
 
 
@@ -28,54 +25,18 @@ class RecordCollectionUnit(ModelWithStepCollection):
         Returns:
             Record ID.
         """
-        self._ids = []
 
         path_raw = self._iter_path()
 
         if path_raw:
-            if isinstance(path_raw, dict):
-                path_tuple = path_raw.values()[0]
-            else:
-                path_tuple = path_raw
-
-            root_path = Path(self.workspace.data_path)
-            raw_pattern = Path(*path_tuple)
-            glob_pattern = str(self._glob_pattern(raw_pattern))
-            re_pattern = re.compile(str(root_path / self._re_pattern(raw_pattern)))
-
-            for path in root_path.glob(glob_pattern):
-                record_id = self._evaluate_path(re_pattern, path)
-                if record_id:
-                    yield record_id
+            path_expl = PathExplorer(self, path_raw)
+            for record_id in path_expl.iter_ids():
+                yield record_id
 
     def _iter_path(self):
         first_script = self.steps.first()
         if first_script:
             return first_script.script.PATH_IN
-
-    def _evaluate_path(self, re_pattern, path):
-        m = re_pattern.search(str(path))
-        if m and (len(m.groups()) > 0):
-            record_id = m.group(1)
-            if self._is_new_id(record_id):
-                return record_id
-
-    def _is_new_id(self, record_id):
-        ids = self._ids
-        if record_id in ids:
-            return False
-        ids.append(record_id)
-        self._ids = ids
-        return True
-
-    def _glob_pattern(self, raw_pattern):
-        return str(raw_pattern).format(id="*", task="*",)
-
-    def _re_pattern(self, raw_pattern):
-        return str(raw_pattern).format(
-            id="({})".format(self.config["records"]["id_pattern"]),
-            task="(?:{})".format(self.task),
-        )
 
     def all(self) -> Generator["Record", None, None]:
         """Generate all records instances of the record_collection.
@@ -196,11 +157,11 @@ class RecordCollection(RecordCollectionUnit, Scope):
             for record_id in super().iter_ids():
                 yield record_id
         else:
-            units = self.iter_units()
-            self._ids = []
-            for unit in units:
+            ids = []
+            for unit in self.iter_units():
                 for record_id in unit.iter_ids():
-                    if self._is_new_id(record_id):
+                    if record_id not in ids:
+                        ids.append(record_id)
                         yield record_id
 
     def get(self, record_id: str) -> "Record":
@@ -221,7 +182,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
             modality=self.modality,
         )
 
-    def _count_detail_unit(self, with_record_id=False):
+    def _count_raw_unit(self, with_record_id=False):
 
         df = pd.DataFrame(
             [

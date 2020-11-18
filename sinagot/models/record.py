@@ -96,7 +96,7 @@ class Record(RecordUnit, Scope):
         else:
             return pd.DataFrame()
 
-    def _count_detail_unit(self):
+    def _count_raw_unit(self):
 
         return pd.DataFrame(
             [

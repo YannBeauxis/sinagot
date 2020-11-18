@@ -1,3 +1,4 @@
+import re
 from importlib import import_module, util as importutil
 from pathlib import Path
 from functools import wraps
@@ -85,3 +86,102 @@ def handle_dict_bool(func):
             return result
 
     return wrapper
+
+
+class PathManager:
+    def __init__(self, scope, path_tuple):
+        self.scope = scope
+        self.workspace = scope.workspace
+        self.root_path = self.workspace.data_path
+        self.path_tuple = path_tuple
+
+    def exists(self):
+        path = self.root_path / self.format_pattern()
+        print(path)
+        return path.exists()
+
+    def format_pattern(self, *args, **kwargs):
+        return self.raw_pattern.format(
+            id="{}".format(self.id_pattern(*args, **kwargs)),
+            task="{}".format(self.task_pattern(*args, **kwargs)),
+        )
+
+    @property
+    def raw_pattern(self):
+        return str(Path(*self.path_tuple))
+
+    def id_pattern(self, *args, **kwargs):
+        return getattr(self.scope, "id", None)
+
+    def task_pattern(self, *args, **kwargs):
+        return self.scope.task
+
+
+class PathCollection:
+
+    _PATH_MANGER_CLASS = PathManager
+
+    def __init__(self, scope, path):
+        self.scope = scope
+        if isinstance(path, dict):
+            self.path_tuples = path.values()
+        else:
+            self.path_tuples = (path,)
+
+    @property
+    def path_managers(self):
+        return (self._PATH_MANGER_CLASS(self.scope, path) for path in self.path_tuples)
+
+
+class PathChecker(PathCollection):
+    def exists(self):
+        return all(pm.exists() for pm in self.path_managers)
+
+
+class PathManagerGlob(PathManager):
+    def iter_ids(self):
+        for path in self.root_path.glob(self.glob_pattern):
+            match = self.re_pattern.match(str(path))
+            if match:
+                yield match.group(1)
+
+    @property
+    def glob_pattern(self):
+        return self.format_pattern("glob")
+
+    @property
+    def re_pattern(self):
+        path = str(self.root_path / self.format_pattern("re"))
+        return re.compile(path)
+
+    def id_pattern(self, pattern_type):
+        record_id = getattr(self.scope, "id", None)
+        if record_id:
+            return record_id
+        elif pattern_type == "re":
+            return "({})".format(self.workspace.config["records"]["id_pattern"])
+        elif pattern_type == "glob":
+            return "*"
+
+    def task_pattern(self, pattern_type):
+        task = self.scope.task
+        if task:
+            return task
+        elif pattern_type == "re":
+            return "(?:.*)"
+        elif pattern_type == "glob":
+            return "*"
+
+
+class PathExplorer(PathCollection):
+
+    _PATH_MANGER_CLASS = PathManagerGlob
+
+    def iter_ids(self):
+        ids = []
+        for path_manager in self.path_managers:
+            for record_id in path_manager.iter_ids():
+                if record_id not in ids:
+                    ids.append(record_id)
+                    yield record_id
+

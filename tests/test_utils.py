@@ -1,4 +1,6 @@
-from sinagot.utils import handle_dict, handle_dict_bool
+from pathlib import Path
+import pytest
+from sinagot.utils import handle_dict, handle_dict_bool, PathChecker, PathExplorer
 
 
 def test_handle_dict():
@@ -27,4 +29,34 @@ def test_handle_dict():
     assert not is_superior(DICT_ARG, value=1)
 
 
-# def test_path_explorer():
+PATH_MFF = ("MFF", "{id}-{task}.mff")
+PATH_HDC = ("PROCESSED", "{id}", "HDC", "behavior-scores.csv")
+PATH_DICT = {"MFF": PATH_MFF, "HDC": PATH_HDC}
+
+
+def test_path_checker(workspace, record):
+
+    path_check = PathChecker(record.RS, PATH_MFF)
+    assert path_check.exists()
+    path_check = PathChecker(workspace.RS.get("REC-012345-A"), PATH_MFF)
+    assert not path_check.exists()
+    path_dict = {
+        "score": PATH_HDC,
+        "score_norm": ("PROCESSED", "{id}", "HDC", "norm-scores.csv"),
+    }
+    path_check = PathChecker(workspace.records.get("REC-200320-A"), path_dict)
+    assert path_check.exists()
+    path_check = PathChecker(record.RS, PATH_DICT)
+    assert path_check.exists()
+    path_check = PathChecker(record.RS, path_dict)
+    assert not path_check.exists()
+
+
+@pytest.mark.parametrize(
+    "path", (PATH_MFF, PATH_HDC, {"MFF": PATH_MFF, "HDC": PATH_HDC})
+)
+def test_path_explorer(workspace, IDS, path):
+
+    path_expl = PathExplorer(workspace.RS, path)
+    assert set(IDS) == set(path_expl.iter_ids())
+

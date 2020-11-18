@@ -240,16 +240,16 @@ class Scope(Model):
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
 
-    def count_detail(self, *args, **kwargs):
+    def count_raw(self, *args, **kwargs):
 
         if self.is_unit:
-            df = self._count_detail_unit(*args, **kwargs)
+            df = self._count_raw_unit(*args, **kwargs)
         else:
             df = pd.concat(
-                [unit.count_detail(*args, **kwargs) for unit in self.iter_units()]
+                [unit.count_raw(*args, **kwargs) for unit in self.iter_units()]
             )
         df.reset_index(drop=True, inplace=True)
         return df
 
-    def _count_detail_unit(self):
+    def _count_raw_unit(self):
         return pd.DataFrame()
