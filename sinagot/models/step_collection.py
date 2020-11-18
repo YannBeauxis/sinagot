@@ -54,7 +54,10 @@ class StepCollectionUnit(Model):
         return self._get(script_name)
 
     def _get(self, script_name):
-        return self._STEP_CLASS(script=script_name, model=self.model)
+        try:
+            return self._STEP_CLASS(script=script_name, model=self.model)
+        except NotFoundError:
+            return None
 
     def first(self) -> Step:
         """Get the first step.

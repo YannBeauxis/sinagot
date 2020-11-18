@@ -148,7 +148,7 @@ class RecordCollection(RecordCollectionUnit, Scope):
 
     def iter_ids(self) -> Generator[str, None, None]:
         """Generator all record ids within the record_collection.
-        
+
         Returns:
             Record ID.
         """
@@ -182,19 +182,9 @@ class RecordCollection(RecordCollectionUnit, Scope):
             modality=self.modality,
         )
 
-    def _count_raw_unit(self, with_record_id=False):
+    def _count_step_unit(self, with_record_id=False, *args, **kwargs):
 
-        df = pd.DataFrame(
-            [
-                {
-                    "record_id": record_id,
-                    "task": self.task,
-                    "modality": self.modality,
-                    "count": 1,
-                }
-                for record_id in self.iter_ids()
-            ]
-        )
+        df = pd.concat([rec._count_step_unit(*args, **kwargs) for rec in self.all()])
         if df.empty or with_record_id:
             return df
         else:

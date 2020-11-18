@@ -96,7 +96,7 @@ class Record(RecordUnit, Scope):
         else:
             return pd.DataFrame()
 
-    def _count_raw_unit(self):
+    def _count_step_unit(self, *args, **kwargs):
 
         return pd.DataFrame(
             [
@@ -104,16 +104,19 @@ class Record(RecordUnit, Scope):
                     "record_id": self.id,
                     "task": self.task,
                     "modality": self.modality,
-                    "count": self._unit_count_raw_data(),
+                    "count": self._count_step_unit_value(*args, **kwargs),
                 }
             ]
         )
 
-    def _unit_count_raw_data(self):
+    def _count_step_unit_value(self, step_label=None, position="input"):
         if not self.is_unit:
             raise NotUnitError
-        first_step = self.steps.first()
-        if first_step and first_step.script.data_exist.input:
+        if not step_label:
+            step = self.steps.first()
+        else:
+            step = self.steps.get(step_label)
+        if step and all(getattr(step.script.data_exist, position).values()):
             return 1
         return 0
 

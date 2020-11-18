@@ -241,15 +241,25 @@ class Scope(Model):
                 yield getattr(self, modality)
 
     def count_raw(self, *args, **kwargs):
+        return self.count_step(*args, **kwargs)
+
+    def count_step(self, step_label=None, position="input", *args, **kwargs):
 
         if self.is_unit:
-            df = self._count_raw_unit(*args, **kwargs)
+            df = self._count_step_unit(
+                step_label=step_label, position=position, *args, **kwargs
+            )
         else:
             df = pd.concat(
-                [unit.count_raw(*args, **kwargs) for unit in self.iter_units()]
+                [
+                    unit.count_step(
+                        step_label=step_label, position=position, *args, **kwargs
+                    )
+                    for unit in self.iter_units()
+                ]
             )
         df.reset_index(drop=True, inplace=True)
         return df
 
-    def _count_raw_unit(self):
+    def _count_step_unit(self, *args, **kwargs):
         return pd.DataFrame()

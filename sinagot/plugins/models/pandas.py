@@ -27,7 +27,6 @@ class PandasRecord(Record, PandasPath):
     def _set_data(self, data):
         if isinstance(data, dict):
             data = pd.Series(data)
-            print("data", data)
         if isinstance(data, pd.Series):
             data.T.to_json(self._data_path)
 
@@ -41,7 +40,7 @@ class PandasRecord(Record, PandasPath):
         Path(data_path).parent.mkdir(exist_ok=True)
         return data_path
 
-    def _unit_count_raw_data(self):
+    def _count_step_unit_value(self, *args, **kwargs):
         if self.data is None:
             return 0
         return 1
