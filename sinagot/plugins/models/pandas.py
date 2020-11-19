@@ -40,10 +40,8 @@ class PandasRecord(Record, PandasPath):
         Path(data_path).parent.mkdir(exist_ok=True)
         return data_path
 
-    def _count_step_unit_value(self, *args, **kwargs):
-        if self.data is None:
-            return 0
-        return 1
+    def _count_step_path(self, step_label=None, position="input", *args, **kwargs):
+        return self._data_raw_path
 
 
 class PandasRecordCollection(RecordCollection, PandasPath):

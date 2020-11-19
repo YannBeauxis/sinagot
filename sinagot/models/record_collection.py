@@ -30,8 +30,7 @@ class RecordCollectionUnit(ModelWithStepCollection):
 
         if path_raw:
             path_expl = PathExplorer(self, path_raw)
-            for record_id in path_expl.iter_ids():
-                yield record_id
+            return path_expl.iter_ids()
 
     def _iter_path(self):
         first_script = self.steps.first()
@@ -181,14 +180,6 @@ class RecordCollection(RecordCollectionUnit, Scope):
             task=self.task,
             modality=self.modality,
         )
-
-    def _count_step_unit(self, with_record_id=False, *args, **kwargs):
-
-        df = pd.concat([rec._count_step_unit(*args, **kwargs) for rec in self.all()])
-        if df.empty or with_record_id:
-            return df
-        else:
-            return df.groupby(["task", "modality"]).sum().reset_index()
 
     # TODO: To test
     def logs(self) -> pd.DataFrame:

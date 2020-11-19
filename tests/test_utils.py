@@ -55,8 +55,13 @@ def test_path_checker(workspace, record):
 @pytest.mark.parametrize(
     "path", (PATH_MFF, PATH_HDC, {"MFF": PATH_MFF, "HDC": PATH_HDC})
 )
-def test_path_explorer(workspace, IDS, path):
+def test_path_explorer_all(workspace, IDS, path):
 
     path_expl = PathExplorer(workspace.RS, path)
-    assert set(IDS) == set(path_expl.iter_ids())
+    assert set(path_expl.iter_ids()) == set(IDS)
 
+
+def test_path_explorer_single(workspace, ID):
+    path = {"MFF": PATH_MFF, "HDC": ("PROCESSED", "{id}", "HDC", "norm-scores.csv")}
+    path_expl = PathExplorer(workspace.RS, path)
+    assert set(path_expl.iter_ids()) == {"REC-200320-A"}

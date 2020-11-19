@@ -1,13 +1,13 @@
 # coding=utf-8
 
-from importlib import import_module
 from typing import Optional, Generator
 import pandas as pd
-from sinagot.utils import get_module, get_plugin_modules
-from sinagot.models import Model
+from sinagot.utils import get_module, get_plugin_modules, PathExplorer
+from sinagot.models import ModelWithStepCollection
+from sinagot.models.exceptions import NotUnitError
 
 
-class Scope(Model):
+class Scope(ModelWithStepCollection):
     """
     A Scope instance can :
 
@@ -240,7 +240,7 @@ class Scope(Model):
             if self._is_valid_subscope("modality", modality):
                 yield getattr(self, modality)
 
-    def count_raw(self, *args, **kwargs):
+    def count_raw_data(self, *args, **kwargs):
         return self.count_step(*args, **kwargs)
 
     def count_step(self, step_label=None, position="input", *args, **kwargs):
@@ -258,8 +258,44 @@ class Scope(Model):
                     for unit in self.iter_units()
                 ]
             )
-        df.reset_index(drop=True, inplace=True)
+        if df is not None:
+            df.reset_index(drop=True, inplace=True)
         return df
 
-    def _count_step_unit(self, *args, **kwargs):
-        return pd.DataFrame()
+    def _count_step_unit(
+        self, step_label=None, position="input", with_record_id=False, *args, **kwargs
+    ):
+        path = self._count_step_path(step_label=step_label, position=position)
+        if path:
+            return self._count_step_df(path, with_record_id=with_record_id)
+
+    def _count_step_path(self, step_label=None, position="input", *args, **kwargs):
+        if not self.is_unit:
+            raise NotUnitError
+        if not step_label:
+            step = self.steps.first()
+        else:
+            step = self.steps.get(step_label)
+        if step:
+            path_label = "PATH_{}".format(position[:-3].upper())
+            return getattr(step.script, path_label)
+
+    def _count_step_df(
+        self, path, with_record_id=False,
+    ):
+        path_expl = PathExplorer(self, path)
+        df = pd.DataFrame(
+            [
+                {
+                    "record_id": record_id,
+                    "task": self.task,
+                    "modality": self.modality,
+                    "count": 1,
+                }
+                for record_id in path_expl.iter_ids()
+            ]
+        )
+        if df.empty or hasattr(self, "id") or with_record_id:
+            return df
+        else:
+            return df.groupby(["task", "modality"]).sum().reset_index()

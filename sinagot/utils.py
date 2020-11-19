@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from importlib import import_module, util as importutil
 from pathlib import Path
 from functools import wraps
@@ -97,7 +98,6 @@ class PathManager:
 
     def exists(self):
         path = self.root_path / self.format_pattern()
-        print(path)
         return path.exists()
 
     def format_pattern(self, *args, **kwargs):
@@ -127,10 +127,13 @@ class PathCollection:
             self.path_tuples = path.values()
         else:
             self.path_tuples = (path,)
+        self.path_managers = tuple(
+            self._PATH_MANGER_CLASS(self.scope, path) for path in self.path_tuples
+        )
 
     @property
-    def path_managers(self):
-        return (self._PATH_MANGER_CLASS(self.scope, path) for path in self.path_tuples)
+    def path_count(self):
+        return len(self.path_managers)
 
 
 class PathChecker(PathCollection):
@@ -156,11 +159,14 @@ class PathManagerGlob(PathManager):
 
     def id_pattern(self, pattern_type):
         record_id = getattr(self.scope, "id", None)
-        if record_id:
-            return record_id
-        elif pattern_type == "re":
-            return "({})".format(self.workspace.config["records"]["id_pattern"])
+        if pattern_type == "re":
+            if record_id:
+                return "({})".format(record_id)
+            else:
+                return "({})".format(self.workspace.config["records"]["id_pattern"])
         elif pattern_type == "glob":
+            if record_id:
+                return record_id
             return "*"
 
     def task_pattern(self, pattern_type):
@@ -178,10 +184,10 @@ class PathExplorer(PathCollection):
     _PATH_MANGER_CLASS = PathManagerGlob
 
     def iter_ids(self):
-        ids = []
+        ids = defaultdict(int)
         for path_manager in self.path_managers:
             for record_id in path_manager.iter_ids():
-                if record_id not in ids:
-                    ids.append(record_id)
+                ids[record_id] += 1
+                if ids[record_id] == self.path_count:
                     yield record_id
 
