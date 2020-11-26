@@ -15,6 +15,8 @@ from sinagot.utils import (
     LOG_STEP_STATUS,
     LOG_VERSION,
     StepStatus,
+    PathManager,
+    HandleDict,
 )
 
 
@@ -41,10 +43,15 @@ class ScriptTemplate:
 
     _PATH_LABELS = ["input", "output"]
     PATH_IN = ("FOLDER_IN", "{id}-{task}.in")
-    """tuple or dict of tuples to specify input path pattern"""
+    """Tuple or dict of tuples to specify input path pattern"""
     PATH_OUT = ("FOLDER_OUT", "{id}-{task}.out")
+    """Tuple or dict of tuples to specify output path pattern"""
     PATH_CONTROL = ("FOLDER_CONTROL", "{id}-{task}.control")
-    """tuple or dict of tuples to specify output path pattern"""
+    """
+    Tuple or dict of tuples to specify control path pattern.
+    Control path can be used to generate additional data or graph
+    in case of bad qualtiy results or errors.
+    """
 
     debug = False
     _logger_file_handler = None
@@ -132,20 +139,9 @@ class ScriptTemplate:
             control=self._get_path(self.PATH_CONTROL),
         )
 
+    @HandleDict.bound_method
     def _get_path(self, raw_path):
-
-        if isinstance(raw_path, tuple):
-            return Path(self.data_path, *self._str_path(raw_path))
-        if isinstance(raw_path, dict):
-            return {
-                label: Path(self.data_path, *self._str_path(rp))
-                for label, rp in raw_path.items()
-            }
-
-    def _str_path(self, raw_path_unit: tuple):
-        return (
-            rp.format(id=self.id, task=self.task, **self.opts) for rp in raw_path_unit
-        )
+        return PathManager(self, raw_path).full_path_resolved()
 
     def _run(
         self, force: bool = False, ignore_missing: bool = False, debug: bool = False

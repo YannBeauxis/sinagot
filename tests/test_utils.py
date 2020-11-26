@@ -1,15 +1,22 @@
-from pathlib import Path
 import pytest
-from sinagot.utils import handle_dict, handle_dict_bool, PathChecker, PathExplorer
+from sinagot.utils import HandleDict, PathChecker, PathExplorer
 
 
-def test_handle_dict():
+@HandleDict
+def multiply_func(arg, factor=2):
+    return arg * factor
+
+
+class HandleTest:
+    @HandleDict.bound_method
+    def multiply_method(self, arg, factor=2):
+        return arg * factor
+
+
+@pytest.mark.parametrize("multiply", (multiply_func, HandleTest().multiply_method))
+def test_handle_dict(multiply):
     SINGLE_ARG = 2
     DICT_ARG = {"A": 1, "B": 2}
-
-    @handle_dict
-    def multiply(arg, factor=2):
-        return arg * factor
 
     assert multiply(SINGLE_ARG) == SINGLE_ARG * 2
     dict_result = {key: value * 2 for key, value in DICT_ARG.items()}
@@ -20,7 +27,7 @@ def test_handle_dict():
     dict_result = {key: value * factor for key, value in DICT_ARG.items()}
     assert multiply(DICT_ARG, factor=factor) == dict_result
 
-    @handle_dict_bool
+    @HandleDict.agg_bool
     def is_superior(arg, value=0):
         return arg > value
 

@@ -1,4 +1,5 @@
 import re
+from inspect import ismethod
 from collections import defaultdict
 from importlib import import_module, util as importutil
 from pathlib import Path
@@ -57,43 +58,68 @@ def get_script(workspace, record_id, task, modality, step_label):
     )
 
 
-def handle_dict(func):
+class HandleDict:
     """Decorator to apply method to all values of dict if first arg is dict"""
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        args = list(args)
-        arg = args.pop(0)
-        if isinstance(arg, dict):
-            return {key: func(value, *args, **kwargs) for key, value in arg.items()}
-        else:
-            return func(arg, *args, **kwargs)
+    def __init__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            args = list(args)
+            arg = args.pop(0)
+            if isinstance(arg, dict):
+                return {key: func(value, *args, **kwargs) for key, value in arg.items()}
+            else:
+                return func(arg, *args, **kwargs)
 
-    return wrapper
+        self.func = wrapper
 
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
 
-def handle_dict_bool(func):
-    """
-    Decorator to apply method that returns a boolean to all values of dict
-    and check if all results are True
-    """
+    @classmethod
+    def bound_method(cls, func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            args = list(args)
+            arg = args.pop(0)
+            if isinstance(arg, dict):
+                return {
+                    key: func(self, value, *args, **kwargs)
+                    for key, value in arg.items()
+                }
+            else:
+                return func(self, arg, *args, **kwargs)
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        result = handle_dict(func)(*args, **kwargs)
-        if isinstance(result, dict):
-            return all(result.values())
-        else:
-            return result
+        return wrapper
 
-    return wrapper
+    @classmethod
+    def agg_bool(cls, func):
+        """
+        Decorator to apply method that returns a boolean to all values of dict
+        and check if all results are True
+        """
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            result = cls(func)(*args, **kwargs)
+            if isinstance(result, dict):
+                return all(result.values())
+            else:
+                return result
+
+        return wrapper
 
 
 class PathManager:
+    workspace = None
+
     def __init__(self, scope, path_tuple):
         self.scope = scope
-        self.workspace = scope.workspace
-        self.root_path = self.workspace.data_path
+        if hasattr(scope, "workspace"):
+            self.workspace = scope.workspace
+            self.root_path = self.workspace.data_path
+        else:
+            self.root_path = scope.data_path
         self.path_tuple = path_tuple
 
     def exists(self):
@@ -105,6 +131,9 @@ class PathManager:
             id="{}".format(self.id_pattern(*args, **kwargs)),
             task="{}".format(self.task_pattern(*args, **kwargs)),
         )
+
+    def full_path_resolved(self, *args, **kwargs):
+        return Path(self.root_path) / self.format_pattern()
 
     @property
     def raw_pattern(self):
