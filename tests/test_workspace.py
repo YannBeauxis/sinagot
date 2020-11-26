@@ -1,3 +1,5 @@
+import re
+import sinagot
 from sinagot import Workspace
 
 
@@ -32,7 +34,7 @@ def test_path_config_custom_name(shared_datadir):
 
 def test_multiple_config_path(shared_datadir):
     conf_pathes = (
-        shared_datadir / "sonetaa" / "workspace.toml",
+        shared_datadir / "sonetaa",
         shared_datadir / "sonetaa" / "custom_conf.toml",
     )
     ws = Workspace(conf_pathes[0])
@@ -40,3 +42,21 @@ def test_multiple_config_path(shared_datadir):
 
     ws = Workspace(conf_pathes)
     assert ws.config["run"]["mode"] == "main_process"
+
+
+def test_version_pattern():
+    assert re.fullmatch(r"\d+\.\d+\.\d+", sinagot.__version__)
+
+
+def test_default_workspace_version(workspace):
+    assert workspace.version == "0.1.0"
+
+
+def test_custom_workspace_version(shared_datadir, custom_version_workspace):
+    assert custom_version_workspace.version == "0.2.0"
+    conf_pathes = (
+        shared_datadir / "sonetaa",
+        shared_datadir / "sonetaa" / "custom_conf.toml",
+    )
+    ws = Workspace(conf_pathes)
+    assert ws.version == "0.3.0"

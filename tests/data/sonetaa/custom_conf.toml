@@ -1,4 +1,7 @@
 
+[info]
+    version="0.3.0"
+
 [run]
     mode = "main_process"
     

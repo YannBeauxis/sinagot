@@ -72,8 +72,12 @@ class Workspace(Model):
         self._init_records()
 
     @property
+    def info(self):
+        return self.config.get("info", {})
+
+    @property
     def version(self):
-        return self.DEFAULT_VERSION
+        return self.info.get("version", self.DEFAULT_VERSION)
 
     def _load_config(self, config_path):
         config = {}
