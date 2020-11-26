@@ -42,6 +42,7 @@ class Workspace(Model):
     _record_class = Record
     _record_collection_unit_class = RecordCollectionUnit
     _record_collection_class = RecordCollection
+    _config_path = None
 
     DEFAULT_VERSION = "0.1.0"
     DEFAULT_CONFIG = {
@@ -51,13 +52,13 @@ class Workspace(Model):
 
     def __init__(
         self,
-        config_path: Union[str, Path],
+        config_path: Union[str, Path, list, tuple],
         data_path: Optional[Union[str, Path]] = None,
         scripts_path: Optional[Union[str, Path]] = None,
     ):
         """
         Arguments:
-            config_path: path to the config file in toml.
+            config_path: path to the config file(s) in toml.
             data_path: path to the folder of the workspace.
         """
 
@@ -75,10 +76,18 @@ class Workspace(Model):
         return self.DEFAULT_VERSION
 
     def _load_config(self, config_path):
-        self._config_path = Path(config_path)
-        if self._config_path.is_dir():
-            self._config_path = self._config_path / "workspace.toml"
-        config = toml.load(self._config_path)
+        config = {}
+        if not isinstance(config_path, (list, tuple)):
+            config_path = (config_path,)
+
+        for path in config_path:
+            path = Path(path)
+            if path.is_dir():
+                path = path / "workspace.toml"
+            if not self._config_path:
+                self._config_path = path
+            conf = toml.load(path)
+            config.update(conf)
         for section, values in self.DEFAULT_CONFIG.items():
             if section not in config:
                 config[section] = values

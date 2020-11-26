@@ -28,3 +28,15 @@ def test_path_config_custom_name(shared_datadir):
     assert ws._config_path == config_path
     assert ws.data_path == workspace_path / "dataset"
     assert ws._scripts_path == workspace_path / "scripts"
+
+
+def test_multiple_config_path(shared_datadir):
+    conf_pathes = (
+        shared_datadir / "sonetaa" / "workspace.toml",
+        shared_datadir / "sonetaa" / "custom_conf.toml",
+    )
+    ws = Workspace(conf_pathes[0])
+    assert ws.config["run"]["mode"] == "dask"
+
+    ws = Workspace(conf_pathes)
+    assert ws.config["run"]["mode"] == "main_process"
