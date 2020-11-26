@@ -42,6 +42,7 @@ def test_multiple_config_path(shared_datadir):
 
     ws = Workspace(conf_pathes)
     assert ws.config["run"]["mode"] == "main_process"
+    assert set(ws.records._tasks) == {"RS", "MMN", "HDC", "NEW"}
 
 
 def test_version_pattern():

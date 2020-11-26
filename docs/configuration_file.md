@@ -83,7 +83,6 @@ If you use tasks and modalities, you must provide *tasks* and *modalities* secti
 ```toml
 [modalities]
     [modalities.EEG]
-        file_match = [true, false]
         scripts = ['preprocess']
         task_scripts.RS = ['RS_alpha', 'RS_alpha_plot', "RS_PSD"]
         task_scripts.MMN = ['MMN_amplitude_latency', 'MMN_plot']

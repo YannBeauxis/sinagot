@@ -5,3 +5,6 @@
 [run]
     mode = "main_process"
     
+[tasks]
+    [tasks.NEW]
+        modalities = ["clinical", "EEG"]

@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import re
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Union, Optional
 import toml
@@ -91,7 +92,7 @@ class Workspace(Model):
             if not self._config_path:
                 self._config_path = path
             conf = toml.load(path)
-            config.update(conf)
+            config = self._update_dict_depth(config, conf)
         for section, values in self.DEFAULT_CONFIG.items():
             if section not in config:
                 config[section] = values
@@ -100,6 +101,14 @@ class Workspace(Model):
         self.is_unit_mode = not any(
             scope in self.config for scope in ("tasks", "modalities")
         )
+
+    def _update_dict_depth(self, source, update):
+        for key, value in update.items():
+            if isinstance(value, Mapping):
+                source[key] = self._update_dict_depth(source.get(key, {}), value)
+            else:
+                source[key] = value
+        return source
 
     def _set_data_path(self, data_path):
         if data_path is None:

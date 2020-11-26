@@ -10,7 +10,6 @@
 
 [records]
     id_pattern = "REC-[\\d]{6}-[A-Z]"
-    file_match = [true, true]
 
 [run]
     # mode = "main_process"
@@ -30,7 +29,6 @@
 
 [modalities]
     [modalities.EEG]
-        file_match = [true, false]
         scripts = ['preprocess']
         task_scripts.RS = ['alpha']
     [modalities.behavior]
