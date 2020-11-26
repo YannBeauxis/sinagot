@@ -75,4 +75,4 @@ wcwidth==0.2.5
 wrapt==1.12.1
 zict==2.0.0
 zipp==3.3.0
-./docs/sinagot-0.2.7.tar.gz
+./docs/sinagot-0.3.0.tar.gz
