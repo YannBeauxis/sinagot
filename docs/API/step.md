@@ -1,4 +1,0 @@
-# Step
-
-::: sinagot.models.Step
-

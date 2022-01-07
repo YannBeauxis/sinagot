@@ -1,3 +1,0 @@
-# Workspace
-
-::: sinagot.Workspace
